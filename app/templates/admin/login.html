@@ -1,0 +1,59 @@
+{% extends 'admin/auth_base.html' %}
+{% block content %}
+  <div class="row justify-content-center align-items-center auth-section">
+    <div class="col-lg-10">
+      <div class="row g-0 auth-shell overflow-hidden shadow-lg">
+        <div class="col-lg-5 auth-visual p-4 p-lg-5 d-flex flex-column justify-content-between">
+          <div>
+            <span class="eyebrow">Administrator access</span>
+            <h1 class="display-6 mt-2 mb-3">Sign in to manage the hotel</h1>
+            <p class="text-white-75">Access room management, bookings, uploads, and hotel content with a secure admin session.</p>
+          </div>
+          <div class="mt-4">
+            <div class="mini-pill">Username or email</div>
+            <div class="mini-pill">Remember me</div>
+            <div class="mini-pill">Secure session</div>
+          </div>
+        </div>
+        <div class="col-lg-7 bg-white p-4 p-lg-5">
+          <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+              <h3 class="mb-1">Admin Login</h3>
+              <p class="text-muted mb-0">Use your admin username or email to continue.</p>
+            </div>
+            <a href="{{ url_for('admin.signup') }}" class="text-decoration-none fw-semibold text-gold">Create admin account</a>
+          </div>
+          <form method="post" novalidate>
+            {{ form.hidden_tag() }}
+            <div class="mb-3">
+              {{ form.identifier.label(class='form-label fw-semibold') }}
+              {{ form.identifier(class='form-control form-control-lg', placeholder='Username or email') }}
+              {% for error in form.identifier.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+            </div>
+            <div class="mb-3">
+              {{ form.password.label(class='form-label fw-semibold') }}
+              <div class="input-group input-group-lg">
+                {{ form.password(class='form-control', id='adminLoginPassword', placeholder='Password') }}
+                <button class="btn btn-outline-secondary" type="button" data-password-toggle data-target="adminLoginPassword">Show</button>
+              </div>
+              {% for error in form.password.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+            </div>
+            <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+              <div class="form-check">
+                {{ form.remember_me(class='form-check-input', id='rememberMe') }}
+                {{ form.remember_me.label(class='form-check-label', for='rememberMe') }}
+              </div>
+              <a href="{{ url_for('admin.forgot_password') }}" class="text-decoration-none small text-muted fw-semibold">Forgot password?</a>
+            </div>
+            <div class="alert alert-light border small text-muted mb-4">
+              Need help signing in? Use your admin email on the reset page and we’ll send a secure link to set a new password.
+            </div>
+            <div class="d-grid">
+              {{ form.submit(class='btn btn-gold btn-lg') }}
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

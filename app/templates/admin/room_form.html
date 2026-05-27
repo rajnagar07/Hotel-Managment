@@ -1,0 +1,25 @@
+{% extends 'admin/base.html' %}
+{% block content %}
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card glass-card p-4 p-lg-5 shadow-sm">
+        <h2 class="mb-4">Add Room</h2>
+        <form method="post" enctype="multipart/form-data">
+          {{ form.hidden_tag() }}
+          <div class="row g-3">
+            <div class="col-md-6">{{ form.number.label(class='form-label fw-semibold') }}{{ form.number(class='form-control') }}</div>
+            <div class="col-md-6">{{ form.room_type.label(class='form-label fw-semibold') }}{{ form.room_type(class='form-control') }}</div>
+            <div class="col-md-6">{{ form.price.label(class='form-label fw-semibold') }}{{ form.price(class='form-control') }}</div>
+            <div class="col-md-6 d-flex align-items-end gap-4">
+              <div class="form-check">{{ form.ac(class='form-check-input', id='ac') }}{{ form.ac.label(class='form-check-label', for='ac') }}</div>
+              <div class="form-check">{{ form.availability(class='form-check-input', id='availability') }}{{ form.availability.label(class='form-check-label', for='availability') }}</div>
+            </div>
+            <div class="col-12">{{ form.description.label(class='form-label fw-semibold') }}{{ form.description(class='form-control', rows='4') }}</div>
+            <div class="col-12">{{ form.images.label(class='form-label fw-semibold') }}{{ form.images(class='form-control') }}</div>
+          </div>
+          <div class="mt-4">{{ form.submit(class='btn btn-gold') }}</div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

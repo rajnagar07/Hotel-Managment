@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="row g-4 align-items-start">
+    <div class="col-lg-7">
+      {% if room.images %}
+        <img class="img-fluid rounded-4 shadow-sm w-100 hotel-detail-image" src="{{ url_for('main.uploaded_file', filename=room.images) }}" alt="{{ room.room_type }}">
+      {% else %}
+        <div class="hotel-card-placeholder hotel-detail-placeholder rounded-4 d-flex align-items-center justify-content-center">
+          <div class="text-center p-5">
+            <div class="hotel-placeholder-icon mb-3">🛏️</div>
+            <h4 class="mb-0 text-white">Room preview coming soon</h4>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+    <div class="col-lg-5">
+      <div class="glass-card p-4 h-100">
+        <span class="eyebrow">Room details</span>
+        <h3 class="mt-2">{{ room.room_type }} - {{ room.number }}</h3>
+        <p class="text-muted">{{ room.description }}</p>
+        <p class="fw-bold fs-4">${{ '%.2f'|format(room.price) }}</p>
+        <button
+          type="button"
+          class="btn btn-gold"
+          data-bs-toggle="modal"
+          data-bs-target="#hotelContactModal"
+          data-book-now
+          data-hotel-name="Family Hotel"
+          data-phone="+919630099023"
+          data-whatsapp="+919630099023"
+          data-email="ujjainhotelbooking@gmail.com"
+          data-address="Ujjain, Madhya Pradesh, India"
+        >
+          Book Now
+        </button>
+      </div>
+    </div>
+  </div>
+{% endblock %}

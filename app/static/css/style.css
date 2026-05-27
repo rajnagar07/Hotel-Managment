@@ -1,0 +1,207 @@
+:root{
+  --bg:#07111f;
+  --bg-soft:#0f1c2f;
+  --accent:#c8a24b;
+  --accent-dark:#9b7a25;
+  --text:#111827;
+}
+
+*{box-sizing:border-box}
+
+body.app-body{
+  min-height:100vh;
+  background:
+    radial-gradient(circle at top left, rgba(200,162,75,.12), transparent 30%),
+    linear-gradient(180deg,#fbfbfc 0%,#f4f6f9 100%);
+  color:var(--text);
+  font-family:'Inter',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+
+h1,h2,h3,h4,.brand-mark,.display-6{font-family:'Playfair Display',serif}
+
+.nav-glass{
+  background:rgba(7,17,31,.92);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+
+.brand-mark{letter-spacing:.4px;font-weight:700}
+
+.btn-gold{
+  background:linear-gradient(135deg,var(--accent),#e6c87f);
+  border:none;
+  color:#1d1604;
+  font-weight:700;
+  box-shadow:0 10px 24px rgba(200,162,75,.24);
+}
+.btn-gold:hover{background:linear-gradient(135deg,#d3b258,var(--accent));color:#1d1604}
+
+.text-gold{color:var(--accent-dark)!important}
+
+.glass-card,.hero-card,.stat-card,.auth-shell{
+  background:rgba(255,255,255,.82);
+  backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,.55);
+  border-radius:1.25rem;
+  box-shadow:0 20px 60px rgba(15,23,42,.08);
+}
+
+.hero img,.carousel-item img{height:420px;object-fit:cover}
+
+.gallery-img{height:220px;object-fit:cover;width:100%}
+
+.eyebrow{
+  display:inline-block;
+  text-transform:uppercase;
+  letter-spacing:.18em;
+  font-size:.75rem;
+  color:#e6c87f;
+  font-weight:700;
+}
+
+.auth-section{padding:2rem 0}
+.auth-shell{min-height:640px}
+
+.auth-visual{
+  background:linear-gradient(160deg, rgba(7,17,31,.97), rgba(15,28,47,.94)), url('https://source.unsplash.com/1200x1600/?luxury,hotel,lobby') center/cover no-repeat;
+  color:#fff;
+}
+
+.auth-visual-signup{
+  background:linear-gradient(160deg, rgba(7,17,31,.97), rgba(15,28,47,.94)), url('https://source.unsplash.com/1200x1600/?hotel,resort') center/cover no-repeat;
+}
+
+.text-white-75{color:rgba(255,255,255,.78)}
+
+.mini-pill{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  margin:.25rem .35rem .25rem 0;
+  padding:.5rem .85rem;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.08);
+  font-size:.85rem;
+}
+
+.stat-card{padding:1.5rem}
+.stat-label{font-size:.85rem;text-transform:uppercase;letter-spacing:.12em;color:#6b7280}
+.stat-value{font-size:1.5rem;font-weight:700;margin:.25rem 0}
+.stat-note{color:#6b7280;font-size:.9rem}
+
+.form-control,.form-select{border-radius:.9rem;padding:.8rem 1rem}
+.form-control:focus,.form-select:focus{border-color:rgba(200,162,75,.6);box-shadow:0 0 0 .25rem rgba(200,162,75,.16)}
+.input-group .btn{border-radius:0 .9rem .9rem 0}
+.input-group .form-control{border-radius:.9rem 0 0 .9rem}
+
+.footer-dark{background:#07111f}
+
+.nav-link{transition:all .2s ease}
+.nav-link:hover{color:#e6c87f!important;transform:translateY(-1px)}
+
+.card{border:none}
+
+.hotel-card-img,
+.hotel-detail-image{
+  width:100%;
+  height:280px;
+  object-fit:cover;
+}
+
+.hotel-card-placeholder,
+.hotel-detail-placeholder,
+.hero-placeholder,
+.room-card-placeholder{
+  background:linear-gradient(160deg, rgba(7,17,31,.96), rgba(15,28,47,.90)), linear-gradient(135deg, rgba(200,162,75,.35), rgba(255,255,255,.06));
+  color:#fff;
+  min-height:280px;
+}
+
+.hero-placeholder{min-height:320px}
+
+.hotel-placeholder-icon{font-size:2.5rem;line-height:1}
+
+.hero-media img{min-height:320px;object-fit:cover}
+
+.hotel-card{transition:transform .2s ease, box-shadow .2s ease}
+.hotel-card:hover{transform:translateY(-4px);box-shadow:0 24px 64px rgba(15,23,42,.12)}
+
+.hotel-detail-placeholder{min-height:360px}
+
+@keyframes modalRise{
+  from{transform:translateY(18px) scale(.98);opacity:0}
+  to{transform:translateY(0) scale(1);opacity:1}
+}
+
+.contact-modal .modal-dialog{max-width:min(960px,calc(100vw - 1.5rem))}
+
+.contact-modal .modal-content{
+  border-radius:1.75rem;
+  background:rgba(7,17,31,.72);
+  backdrop-filter:blur(22px);
+  box-shadow:0 30px 90px rgba(7,17,31,.38);
+  color:#fff;
+  animation:modalRise .32s ease;
+}
+
+.contact-modal .modal-backdrop.show{opacity:.74}
+
+.contact-modal-header{
+  background:
+    linear-gradient(135deg, rgba(7,17,31,.95), rgba(15,28,47,.85)),
+    radial-gradient(circle at top right, rgba(200,162,75,.35), transparent 28%);
+}
+
+.contact-modal-overlay{
+  position:absolute;
+  inset:0;
+  background:url('https://source.unsplash.com/1200x800/?luxury,hotel,room') center/cover no-repeat;
+  opacity:.12;
+}
+
+.contact-card,.contact-actions{
+  border-radius:1.3rem;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.12);
+}
+
+.contact-list{display:flex;flex-direction:column;gap:0}
+
+.contact-row{
+  display:flex;
+  justify-content:space-between;
+  gap:1rem;
+  padding:1rem 0;
+  border-bottom:1px solid rgba(255,255,255,.10);
+}
+
+.contact-label{color:rgba(255,255,255,.68);font-size:.9rem;flex:0 0 auto}
+.contact-value{font-weight:600;text-align:right;max-width:60%;word-break:break-word}
+
+.btn-call,.btn-whatsapp,.btn-email{
+  border:none;
+  color:#fff;
+  font-weight:700;
+  border-radius:.95rem;
+  padding:.9rem 1.15rem;
+}
+
+.btn-call{background:linear-gradient(135deg,#16a34a,#22c55e)}
+.btn-whatsapp{background:linear-gradient(135deg,#128c7e,#25d366)}
+.btn-email{background:linear-gradient(135deg,#2563eb,#60a5fa)}
+
+.btn-call:hover,.btn-whatsapp:hover,.btn-email:hover{filter:brightness(1.05);color:#fff}
+
+.contact-hint{padding-top:1rem;border-top:1px solid rgba(255,255,255,.1)}
+
+@media (max-width: 991.98px){
+  .contact-row{flex-direction:column}
+  .contact-value{text-align:left;max-width:100%}
+}
+
+@media (max-width: 575.98px){
+  .contact-modal .modal-content{border-radius:1.2rem}
+  .contact-modal-header,.contact-card,.contact-actions{padding:1.15rem !important}
+}
+

@@ -1,0 +1,77 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+dist/
+downloads/
+eggs/
+.eggs/
+*.egg-info/
+.installed.cfg
+*.egg
+pip-wheel-metadata/
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+.venv/*
+
+# Environment variables
+.env
+.env.*
+
+# Flask instance folder
+instance/
+
+# Database files
+*.db
+*.sqlite3
+
+# Uploads and exports
+uploads/
+app/static/uploads/
+exports/
+
+# Migrations
+migrations/
+alembic.ini
+
+# Test / coverage
+.pytest_cache/
+coverage.xml
+*.cover
+
+# IDEs and editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Type check / cache
+.mypy_cache/
+.pyre/
+.pytype/
+
+# Logs
+*.log
+
+# Keys / certs
+*.pem
+*.key
+
+# Misc
+*.bak
+*.tmp

@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% block content %}
+  <section class="hero-card p-4 p-lg-5 mb-5 overflow-hidden">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-7">
+        <span class="eyebrow">Luxury stays</span>
+        <h1 class="display-5 mt-2 mb-3">Discover elegant hotels with live availability and image galleries</h1>
+        <p class="lead mb-4">Browse dynamic hotel listings, explore amenities, and jump into the booking experience without logging in.</p>
+        <div class="d-flex gap-2 flex-wrap">
+          <a href="#hotels" class="btn btn-gold btn-lg">Explore Hotels</a>
+          <a href="#rooms" class="btn btn-outline-dark btn-lg">Browse Rooms</a>
+        </div>
+      </div>
+      <div class="col-lg-5">
+        {% if hotels and hotels[0].cover_image_url %}
+          <div class="hero-media rounded-4 overflow-hidden shadow-lg">
+            <img src="{{ hotels[0].cover_image_url }}" alt="{{ hotels[0].hotel_name }}" class="w-100 h-100 object-fit-cover">
+          </div>
+        {% else %}
+          <div class="hero-placeholder rounded-4 p-4 text-white d-flex flex-column justify-content-end shadow-lg">
+            <span class="eyebrow text-white-75">Dynamic catalog</span>
+            <h2 class="mt-2 mb-0 text-white">Add your first hotel in the admin panel</h2>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  <section id="hotels" class="mb-5">
+    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+      <div>
+        <span class="eyebrow">Hotels</span>
+        <h2 class="mt-2 mb-0">Featured hotel listings</h2>
+      </div>
+    </div>
+    <div class="row g-4">
+      {% for hotel in hotels %}
+      <div class="col-md-6 col-xl-4">
+        <div class="card glass-card h-100 overflow-hidden hotel-card">
+          {% if hotel.cover_image_url %}
+            <img src="{{ hotel.cover_image_url }}" class="card-img-top hotel-card-img" alt="{{ hotel.hotel_name }}">
+          {% else %}
+            <div class="hotel-card-placeholder d-flex align-items-center justify-content-center">
+              <div class="text-center p-4">
+                <div class="hotel-placeholder-icon mb-3">🏨</div>
+                <div class="fw-semibold">No uploaded image yet</div>
+              </div>
+            </div>
+          {% endif %}
+          <div class="card-body d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+              <div>
+                <h5 class="card-title mb-1">{{ hotel.hotel_name }}</h5>
+                <div class="text-muted small">{{ hotel.location }}</div>
+              </div>
+              <span class="badge rounded-pill text-bg-{{ 'success' if hotel.is_available else 'secondary' }}">
+                {{ 'Available' if hotel.is_available else 'Booked' }}
+              </span>
+            </div>
+            <p class="card-text text-muted flex-grow-1">{{ hotel.description }}</p>
+            <div class="d-flex flex-wrap gap-2 mb-3">
+              <span class="mini-pill">{{ hotel.room_type }}</span>
+              <span class="mini-pill">${{ '%.2f'|format(hotel.price) }}/night</span>
+            </div>
+            <div class="mb-3">
+              {% for amenity in hotel.amenities_list[:3] %}
+                <span class="badge text-bg-light border me-1 mb-1">{{ amenity }}</span>
+              {% endfor %}
+            </div>
+            <div class="d-flex flex-wrap gap-2 mt-auto">
+              <a href="{{ url_for('main.hotel_detail', hotel_id=hotel.id) }}" class="btn btn-outline-dark flex-grow-1">View Details</a>
+              <button
+                type="button"
+                class="btn btn-gold flex-grow-1"
+                data-bs-toggle="modal"
+                data-bs-target="#hotelContactModal"
+                data-book-now
+                data-hotel-name="{{ hotel.hotel_name }}"
+                data-phone="+919630099023"
+                data-whatsapp="+919630099023"
+                data-email="ujjainhotelbooking@gmail.com"
+                data-address="Ujjain, Madhya Pradesh, India"
+              >
+                Book Now
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="col-12">
+        <div class="glass-card p-4 text-center">
+          <h5 class="mb-2">No hotels available yet</h5>
+          <p class="text-muted mb-0">Log in as an admin and add your first hotel to populate the homepage.</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section id="gallery" class="mb-5">
+    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+      <div>
+        <span class="eyebrow">Gallery</span>
+        <h2 class="mt-2 mb-0">Explore the hotel experience</h2>
+      </div>
+    </div>
+    <div class="row g-4">
+      {% for image in gallery_images %}
+      <div class="col-md-4">
+        <img src="{{ image }}" class="img-fluid rounded-4 shadow-sm gallery-img" alt="Hotel gallery image">
+      </div>
+      {% else %}
+      <div class="col-12">
+        <p class="text-muted mb-0">Upload hotel images in the admin panel to build a polished gallery.</p>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section id="about" class="mb-5">
+    <span class="eyebrow">About</span>
+    <h2 class="mt-2">A warm, modern stay for every guest</h2>
+    <p class="lead">Family-run luxury hotel with warm hospitality, refined rooms, and simple booking.</p>
+  </section>
+
+  <section id="rooms" class="mb-5">
+    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+      <div>
+        <span class="eyebrow">Rooms</span>
+        <h2 class="mt-2 mb-0">Choose your stay</h2>
+      </div>
+    </div>
+    <div class="row g-4">
+      {% for room in rooms %}
+      <div class="col-md-4">
+        <div class="card glass-card h-100 overflow-hidden">
+          {% if room.images %}
+            <img src="{{ url_for('main.uploaded_file', filename=room.images) }}" class="card-img-top hotel-card-img" alt="{{ room.room_type }}">
+          {% else %}
+            <div class="hotel-card-placeholder room-card-placeholder d-flex align-items-center justify-content-center">
+              <div class="text-center p-4">
+                <div class="hotel-placeholder-icon mb-3">🛏️</div>
+                <div class="fw-semibold">Room preview coming soon</div>
+              </div>
+            </div>
+          {% endif %}
+          <div class="card-body">
+            <h5 class="card-title">{{ room.room_type }} - {{ room.number }}</h5>
+            <p class="card-text">{{ room.description or 'Comfortable and elegant.' }}</p>
+            <p class="fw-bold">${{ '%.2f'|format(room.price) }}</p>
+            <div class="d-flex flex-wrap gap-2">
+              <a href="{{ url_for('main.room_detail', room_id=room.id) }}" class="btn btn-outline-dark flex-grow-1">View</a>
+              <button
+                type="button"
+                class="btn btn-gold flex-grow-1"
+                data-bs-toggle="modal"
+                data-bs-target="#hotelContactModal"
+                data-book-now
+                data-hotel-name="Family Hotel"
+                data-phone="+919630099023"
+                data-whatsapp="+919630099023"
+                data-email="ujjainhotelbooking@gmail.com"
+                data-address="Ujjain, Madhya Pradesh, India"
+              >
+                Book Now
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="col-12">
+        <div class="glass-card p-4 text-center">
+          <h5 class="mb-2">No rooms available yet</h5>
+          <p class="text-muted mb-0">Add rooms from the admin area to let guests browse and book.</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section id="contact" class="mb-5">
+    <span class="eyebrow">Contact</span>
+    <h2 class="mt-2">We’re here to help</h2>
+    <p>
+      <a href="tel:9630099023" class="me-3 text-decoration-none">
+        Call: <span class="fw-semibold">+919630099023</span>
+      </a>
+      <a href="mailto:ujjainhotelbooking@gmail.com?subject=Booking%20inquiry" class="text-decoration-none">
+        Email: <span class="fw-semibold">ujjainhotelbooking@gmail.com</span>
+      </a>
+    </p>
+  </section>
+
+{% endblock %}
