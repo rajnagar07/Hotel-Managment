@@ -1,7 +1,7 @@
 """Flask configuration for Supabase PostgreSQL.
 
-Load environment variables from .env file and provide defaults.
-Use PostgreSQL URI format: postgresql://user:password@host:port/dbname
+Load environment variables from .env file and keep production settings
+environment-driven. No hardcoded secrets or database URLs belong here.
 """
 
 import os
@@ -11,22 +11,29 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 load_dotenv(os.path.join(basedir, '.env'))
 
 
+def _env_flag(name, default=False):
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {'1', 'true', 'yes', 'on'}
+
+
 class Config:
     """Base configuration for the Flask application.
 
     Loads SECRET_KEY and DATABASE_URL from environment variables.
-    Provides sensible defaults for local development.
+    Production should fail loudly if either value is missing.
     """
     # Secret key for session signing and CSRF protection
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-change-in-production'
+    SECRET_KEY = os.environ['SECRET_KEY']
 
     # PostgreSQL database URI (supports Supabase)
     # Format: postgresql://user:password@host:port/database
-    DATABASE_URL = os.environ.get('DATABASE_URL')
+    DATABASE_URL = os.environ['DATABASE_URL']
     if DATABASE_URL and DATABASE_URL.startswith('postgres://'):
         # Fix for SQLAlchemy 1.4+ (convert postgres:// to postgresql://)
         DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
-    SQLALCHEMY_DATABASE_URI = DATABASE_URL or 'postgresql://localhost/hotel_db'
+    SQLALCHEMY_DATABASE_URI = DATABASE_URL
 
     # Disable modification tracking for performance
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -37,6 +44,13 @@ class Config:
         'pool_recycle': 3600,
         'pool_pre_ping': True,  # Test connections before using them
     }
+
+    # Flask runtime mode and browser/session hardening
+    FLASK_ENV = os.environ.get('FLASK_ENV', 'development')
+    DEBUG = _env_flag('FLASK_DEBUG', FLASK_ENV.lower() == 'development')
+    SESSION_COOKIE_SECURE = _env_flag('SESSION_COOKIE_SECURE', FLASK_ENV.lower() == 'production')
+    SESSION_COOKIE_HTTPONLY = _env_flag('SESSION_COOKIE_HTTPONLY', True)
+    MAX_CONTENT_LENGTH = int(os.environ.get('MAX_CONTENT_LENGTH', 16 * 1024 * 1024))
 
     # File upload folders
     UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER', os.path.join(basedir, 'uploads'))
@@ -57,12 +71,15 @@ class DevelopmentConfig(Config):
     """Development-specific configuration."""
     DEBUG = True
     TESTING = False
+    SESSION_COOKIE_SECURE = False
 
 
 class ProductionConfig(Config):
     """Production-specific configuration."""
     DEBUG = False
     TESTING = False
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
 
 
 class TestingConfig(Config):

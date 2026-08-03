@@ -1,0 +1,18 @@
+[Unit]
+Description=Hotel Management Flask app (Gunicorn)
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/path/to/hotel-management
+EnvironmentFile=/path/to/hotel-management/.env
+Environment="PATH=/path/to/hotel-management/venv/bin"
+ExecStart=/path/to/hotel-management/venv/bin/gunicorn -c /path/to/hotel-management/gunicorn.conf.py run:app
+Restart=always
+RestartSec=5
+KillSignal=SIGQUIT
+Type=simple
+
+[Install]
+WantedBy=multi-user.target

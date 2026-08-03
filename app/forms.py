@@ -28,6 +28,7 @@ class AdminSignupForm(FlaskForm):
     full_name = StringField('Full Name', validators=[DataRequired(), Length(min=2, max=120)])
     username = StringField('Username', validators=[DataRequired(), Length(min=3, max=64)])
     email = StringField('Email', validators=[DataRequired(), Email(), Length(max=120)])
+    role = SelectField('Account Type', choices=[('admin', 'Admin'), ('subadmin', 'Subadmin')], validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired(), Length(min=8)])
     confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password', message='Passwords must match')])
     submit = SubmitField('Create Admin Account')
@@ -94,7 +95,14 @@ class RoomForm(FlaskForm):
     ac = BooleanField('AC')
     availability = BooleanField('Available')
     description = TextAreaField('Description', validators=[Optional()])
-    images = FileField('Images', validators=[Optional()])
+    images = FileField(
+        'Images',
+        validators=[
+            Optional(),
+            FileAllowed(['jpg', 'jpeg', 'jfif', 'png', 'webp'], 'Only JPG, JPEG, JFIF, PNG, and WEBP images are allowed.'),
+        ],
+        render_kw={'accept': '.jpg,.jpeg,.jfif,.png,.webp,image/jpeg,image/png,image/webp'},
+    )
     submit = SubmitField('Save')
 
 

@@ -8,10 +8,14 @@ from flask import render_template, request, redirect, url_for, flash, current_ap
 from werkzeug.utils import secure_filename
 import os
 from app.routes import main_bp
+from app.routes.admin import admin_required
 from app import db
 from app.models import Room, Customer, Booking, Hotel
 from app.forms import BookingForm, ExcelUploadForm
 from app.services.excel_utils import read_excel_preview, process_excel_upload
+from app.services.enquiry_utils import append_enquiry, ensure_enquiry_file_exists
+from datetime import date
+import json
 
 
 def _serialize_hotel(hotel):
@@ -90,12 +94,20 @@ def book(room_id):
     form = BookingForm()
     if form.validate_on_submit():
         # Create customer record and commit so we have an ID
-        customer = Customer(name=form.name.data, email=form.email.data, phone=form.phone.data)
+        customer = Customer()
+        customer.name = form.name.data
+        customer.email = form.email.data
+        customer.phone = form.phone.data
         db.session.add(customer)
         db.session.commit()
 
         # Create booking linked to the room and customer
-        booking = Booking(room_id=room.id, customer_id=customer.id, check_in=form.check_in.data, check_out=form.check_out.data, total_price=room.price)
+        booking = Booking()
+        booking.room_id = room.id
+        booking.customer_id = customer.id
+        booking.check_in = form.check_in.data
+        booking.check_out = form.check_out.data
+        booking.total_price = room.price
         db.session.add(booking)
         db.session.commit()
         flash('Booking confirmed', 'success')
@@ -155,6 +167,7 @@ def uploaded_file(filename):
 # Excel preview/process (minimal admin flows)
 # -----------------------------
 @main_bp.route('/admin/excel/preview', methods=['POST'])
+@admin_required
 def excel_preview():
     """Accept an uploaded Excel file and show a small preview.
 
@@ -166,7 +179,7 @@ def excel_preview():
     form = ExcelUploadForm()
     if form.validate_on_submit():
         f = request.files['file']
-        filename = secure_filename(f.filename)
+        filename = secure_filename(f.filename or 'upload.xlsx')
         filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
         f.save(filepath)
         preview = read_excel_preview(filepath)
@@ -176,6 +189,7 @@ def excel_preview():
 
 
 @main_bp.route('/admin/excel/process/<filename>', methods=['POST'])
+@admin_required
 def excel_process(filename):
     """Process an uploaded Excel file and import rows into the database.
 
@@ -183,8 +197,41 @@ def excel_process(filename):
       rooms or customers and insert/update records.
     - Shows a flash message with the result and redirects back to home.
     """
-    filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], secure_filename(filename))
+    upload_folder = str(current_app.config.get('UPLOAD_FOLDER') or os.path.join(current_app.root_path, '..', 'uploads'))
+    filepath = os.path.join(upload_folder, secure_filename(filename))
     result = process_excel_upload(filepath, db.session)
     flash(result.get('message', 'Processed'), 'info')
     return redirect(url_for('main.index'))
+
+
+# -----------------------------
+# Customer enquiry endpoint
+# -----------------------------
+@main_bp.route('/enquire', methods=['POST'])
+def enquire():
+    """Accept AJAX enquiries and persist them into an Excel file (no DB).
+
+    Expects JSON: {name: str, phone: str}
+    Returns JSON {success: bool, message: str}
+    """
+    data = request.get_json() or {}
+    name = (data.get('name') or '').strip()
+    phone = (data.get('phone') or '').strip()
+
+    # Basic validation
+    if not name:
+        return jsonify({'success': False, 'message': 'Name is required.'}), 400
+    digits = ''.join(ch for ch in phone if ch.isdigit())
+    if len(digits) < 7 or len(digits) > 15:
+        return jsonify({'success': False, 'message': 'Please enter a valid phone number.'}), 400
+
+    export_folder = str(current_app.config.get('EXPORT_FOLDER') or os.path.join(current_app.root_path, '..', 'exports'))
+    filepath = os.path.join(export_folder, 'enquiries.xlsx')
+
+    ensure_enquiry_file_exists(filepath)
+    result = append_enquiry(filepath, name, phone)
+    if not result.get('success'):
+        return jsonify({'success': False, 'message': 'Could not save enquiry: ' + result.get('message', '')}), 500
+
+    return jsonify({'success': True, 'message': 'Thank you — your enquiry was received.'})
 

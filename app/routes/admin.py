@@ -4,7 +4,7 @@ This module defines routes used by site administrators for logging in,
 managing rooms and hotels, and handling Excel uploads to PostgreSQL.
 """
 
-from flask import render_template, request, redirect, url_for, flash, current_app, jsonify
+from flask import render_template, request, redirect, url_for, flash, current_app, jsonify, send_from_directory
 from flask_login import login_user, logout_user, login_required, current_user
 from flask_mail import Message
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
@@ -28,6 +28,9 @@ def admin_required(view):
     def wrapped(*args, **kwargs):
         if not getattr(current_user, 'is_admin', False):
             flash('Admin access required.', 'danger')
+            return redirect(url_for('admin.login'))
+        if getattr(current_user, 'role', 'admin') == 'subadmin' and not getattr(current_user, 'is_verified', False):
+            flash('Your subadmin account is pending verification.', 'warning')
             return redirect(url_for('admin.login'))
         return view(*args, **kwargs)
 
@@ -140,6 +143,9 @@ def login():
             or_(func.lower(Admin.username) == identifier, func.lower(Admin.email) == identifier)
         ).first()
         if admin and admin.check_password(form.password.data):
+            if getattr(admin, 'role', 'admin') == 'subadmin' and not getattr(admin, 'is_verified', False):
+                flash('Your subadmin account is awaiting verification.', 'warning')
+                return render_template('admin/login.html', form=form)
             login_user(admin, remember=form.remember_me.data)
             return redirect(url_for('admin.dashboard'))
         flash('Invalid credentials', 'danger')
@@ -148,22 +154,47 @@ def login():
 
 @admin_bp.route('/signup', methods=['GET', 'POST'])
 def signup():
-    """Create a new admin account and redirect to admin login."""
-    if current_user.is_authenticated and getattr(current_user, 'is_admin', False):
+    """Create the first admin or allow logged-in admins to add more admins.
+
+    - If no admin accounts exist yet, the page is public so the first
+      administrator can be created.
+    - If admins already exist, only a logged-in admin may create another one.
+    """
+    admin_count = Admin.query.count()
+    is_admin_user = current_user.is_authenticated and getattr(current_user, 'is_admin', False)
+    public_signup_role = 'admin' if admin_count == 0 else 'subadmin'
+
+    if is_admin_user:
         return redirect(url_for('admin.dashboard'))
 
     form = AdminSignupForm()
+    if is_admin_user:
+        form.role.choices = [('admin', 'Admin'), ('subadmin', 'Subadmin')]
+    elif admin_count == 0:
+        form.role.choices = [('admin', 'Admin')]
+    else:
+        form.role.choices = [('subadmin', 'Subadmin')]
+
     if form.validate_on_submit():
+        if not is_admin_user and form.role.data != public_signup_role:
+            flash('Public signup is only available for subadmins after an admin exists.', 'warning')
+            return render_template('admin/signup.html', form=form)
+
         admin = Admin()
         admin.full_name = (form.full_name.data or '').strip()
         admin.username = (form.username.data or '').strip()
         admin.email = (form.email.data or '').strip().lower()
         admin.is_admin = True
+        admin.role = (form.role.data or 'admin').strip().lower()
+        admin.is_verified = admin.role != 'subadmin'
         admin.set_password(form.password.data)
         db.session.add(admin)
         db.session.commit()
-        flash('Admin account created successfully. Please log in.', 'success')
+        flash('Account created successfully. Subadmins need verification before login.' if admin.is_subadmin else 'Admin account created successfully. Please log in.', 'success')
         return redirect(url_for('admin.login'))
+
+    if admin_count > 0 and not is_admin_user:
+        flash('Public signup creates subadmin accounts only. Admins can verify them from the dashboard.', 'info')
     return render_template('admin/signup.html', form=form)
 
 
@@ -251,7 +282,21 @@ def dashboard():
     hotel_images = HotelImage.query.count()
     recent_bookings = Booking.query.order_by(Booking.created_at.desc()).limit(10).all()
     recent_hotels = Hotel.query.order_by(Hotel.created_at.desc()).limit(10).all()
+    pending_subadmins = Admin.query.filter(Admin.role == 'subadmin', Admin.is_verified.is_(False)).order_by(Admin.created_at.desc()).all()
+    verified_subadmins = Admin.query.filter(Admin.role == 'subadmin', Admin.is_verified.is_(True)).order_by(Admin.created_at.desc()).all()
     delete_form = DeleteForm()
+    # Count enquiries if the file exists
+    enquiries_count = 0
+    try:
+        export_folder = str(current_app.config.get('EXPORT_FOLDER') or os.path.join(current_app.root_path, '..', 'exports'))
+        enquiries_path = os.path.join(export_folder, 'enquiries.xlsx')
+        if os.path.exists(enquiries_path):
+            # Use pandas to count rows (excluding header)
+            import pandas as pd
+            df = pd.read_excel(enquiries_path)
+            enquiries_count = len(df)
+    except Exception:
+        enquiries_count = 0
     return render_template(
         'admin/dashboard.html',
         total_bookings=total_bookings,
@@ -261,8 +306,96 @@ def dashboard():
         hotel_images=hotel_images,
         recent_bookings=recent_bookings,
         recent_hotels=recent_hotels,
+        pending_subadmins=pending_subadmins,
+        verified_subadmins=verified_subadmins,
         delete_form=delete_form,
+        enquiries_count=enquiries_count,
     )
+
+
+@admin_bp.route('/subadmins/<int:admin_id>/verify', methods=['POST'])
+@admin_required
+def verify_subadmin(admin_id):
+    """Approve a pending subadmin so they can access admin tools."""
+    form = DeleteForm()
+    if not form.validate_on_submit():
+        flash('Invalid verification request.', 'danger')
+        return redirect(url_for('admin.dashboard'))
+
+    subadmin = Admin.query.get_or_404(admin_id)
+    if getattr(subadmin, 'role', 'admin') != 'subadmin':
+        flash('That account is not a subadmin.', 'warning')
+        return redirect(url_for('admin.dashboard'))
+
+    subadmin.is_verified = True
+    db.session.commit()
+    flash(f'Subadmin {subadmin.username} verified successfully.', 'success')
+    return redirect(url_for('admin.dashboard'))
+
+
+@admin_bp.route('/subadmins/<int:admin_id>/delete', methods=['POST'])
+@admin_required
+def delete_subadmin_request(admin_id):
+    """Delete a pending subadmin request from the dashboard."""
+    form = DeleteForm()
+    if not form.validate_on_submit():
+        flash('Invalid delete request.', 'danger')
+        return redirect(url_for('admin.dashboard'))
+
+    subadmin = Admin.query.get_or_404(admin_id)
+    if getattr(subadmin, 'role', 'admin') != 'subadmin':
+        flash('That account is not a subadmin request.', 'warning')
+        return redirect(url_for('admin.dashboard'))
+
+    if getattr(subadmin, 'is_verified', False):
+        flash('Only pending subadmin requests can be deleted from this action.', 'warning')
+        return redirect(url_for('admin.dashboard'))
+
+    username = subadmin.username
+    db.session.delete(subadmin)
+    db.session.commit()
+    flash(f'Subadmin request for {username} has been deleted.', 'success')
+    return redirect(url_for('admin.dashboard'))
+
+
+@admin_bp.route('/subadmins/<int:admin_id>/remove', methods=['POST'])
+@admin_required
+def remove_verified_subadmin(admin_id):
+    """Remove a verified subadmin account from the dashboard."""
+    form = DeleteForm()
+    if not form.validate_on_submit():
+        flash('Invalid remove request.', 'danger')
+        return redirect(url_for('admin.dashboard'))
+
+    subadmin = Admin.query.get_or_404(admin_id)
+    if getattr(subadmin, 'role', 'admin') != 'subadmin':
+        flash('That account is not a subadmin.', 'warning')
+        return redirect(url_for('admin.dashboard'))
+
+    if not getattr(subadmin, 'is_verified', False):
+        flash('That subadmin is still pending. Use Delete Request instead.', 'warning')
+        return redirect(url_for('admin.dashboard'))
+
+    username = subadmin.username
+    db.session.delete(subadmin)
+    db.session.commit()
+    flash(f'Verified subadmin {username} has been removed.', 'success')
+    return redirect(url_for('admin.dashboard'))
+
+
+
+@admin_bp.route('/enquiries/download')
+@admin_required
+def download_enquiries():
+    """Allow admin to download the enquiries.xlsx file if present."""
+    export_folder = str(current_app.config.get('EXPORT_FOLDER') or os.path.join(current_app.root_path, '..', 'exports'))
+    filename = 'enquiries.xlsx'
+    filepath = os.path.join(export_folder, filename)
+    if not os.path.exists(filepath):
+        flash('No enquiries have been collected yet.', 'info')
+        return redirect(url_for('admin.dashboard'))
+    # send file from export folder
+    return send_from_directory(export_folder, filename, as_attachment=True)
 
 
 # -----------------------------

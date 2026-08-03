@@ -39,6 +39,8 @@ class Admin(UserMixin, db.Model):
     - password_hash: hashed password (never store plain text)
     - created_at: registration timestamp
     - is_admin: flag for admin privileges
+    - role: distinguishes full admins from subadmins
+    - is_verified: subadmin approval flag
     """
     __tablename__ = 'user'
 
@@ -49,6 +51,8 @@ class Admin(UserMixin, db.Model):
     password_hash = db.Column(db.String(256), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_admin = db.Column(db.Boolean, default=True, nullable=False)
+    role = db.Column(db.String(20), default='admin', nullable=False)
+    is_verified = db.Column(db.Boolean, default=True, nullable=False)
 
     def set_password(self, password):
         """Hash and store the admin password."""
@@ -57,6 +61,10 @@ class Admin(UserMixin, db.Model):
     def check_password(self, password):
         """Verify a plaintext password against the stored hash."""
         return check_password_hash(self.password_hash, password)
+
+    @property
+    def is_subadmin(self):
+        return (self.role or 'admin') == 'subadmin'
 
 
 # -----------------------------

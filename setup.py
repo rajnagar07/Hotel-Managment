@@ -21,6 +21,13 @@ from app import create_app, db
 from app.models import Admin
 
 
+def _required_env(name):
+    value = os.environ.get(name, '').strip()
+    if not value:
+        raise RuntimeError(f'Missing required environment variable for setup.py: {name}')
+    return value
+
+
 def setup_database():
     """Create all database tables."""
     print('\n[1] Creating database tables...')
@@ -45,28 +52,35 @@ def create_admin_user():
             db.session.execute(text("ALTER TABLE \"user\" ADD COLUMN IF NOT EXISTS full_name VARCHAR(120) NOT NULL DEFAULT ''"))
             db.session.execute(text("ALTER TABLE \"user\" ADD COLUMN IF NOT EXISTS created_at TIMESTAMP NOT NULL DEFAULT NOW()"))
             db.session.execute(text("ALTER TABLE \"user\" ALTER COLUMN is_admin SET DEFAULT TRUE"))
+            db.session.execute(text("ALTER TABLE \"user\" ADD COLUMN IF NOT EXISTS role VARCHAR(20) NOT NULL DEFAULT 'admin'"))
+            db.session.execute(text("ALTER TABLE \"user\" ADD COLUMN IF NOT EXISTS is_verified BOOLEAN NOT NULL DEFAULT TRUE"))
 
-            admin = Admin.query.filter_by(username='admin').first()
+            default_username = _required_env('DEFAULT_ADMIN_USERNAME')
+            default_email = _required_env('DEFAULT_ADMIN_EMAIL')
+            default_password = _required_env('DEFAULT_ADMIN_PASSWORD')
+            default_full_name = os.environ.get('DEFAULT_ADMIN_FULL_NAME', 'Hotel Administrator').strip() or 'Hotel Administrator'
+
+            admin = Admin.query.filter_by(username=default_username).first()
             if not admin:
                 admin = Admin(
-                    full_name='Hotel Administrator',
-                    username='admin',
-                    email='admin@hotel.com',
+                    full_name=default_full_name,
+                    username=default_username,
+                    email=default_email,
                     is_admin=True,
                 )
-                admin.set_password('Admin@123')
+                admin.set_password(default_password)
                 db.session.add(admin)
             else:
-                admin.full_name = admin.full_name or 'Hotel Administrator'
-                admin.email = 'admin@hotel.com'
+                admin.full_name = admin.full_name or default_full_name
+                admin.email = default_email
                 admin.is_admin = True
-                admin.set_password('Admin@123')
+                admin.set_password(default_password)
 
             db.session.commit()
             print('✓ Admin user created successfully!')
-            print('  Username: admin')
-            print('  Email: admin@hotel.com')
-            print('  Password: Admin@123\n')
+            print(f'  Username: {default_username}')
+            print(f'  Email: {default_email}')
+            print('  Password: provided via DEFAULT_ADMIN_PASSWORD\n')
             return True
     except Exception as e:
         print(f'✗ Error creating admin: {e}\n')

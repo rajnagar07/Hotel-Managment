@@ -16,6 +16,8 @@
     <div class="col"><div class="stat-card h-100"><div class="stat-label">Available Rooms</div><div class="stat-value">{{ available_rooms }}</div><div class="stat-note">Ready for booking</div></div></div>
     <div class="col"><div class="stat-card h-100"><div class="stat-label">Total Hotels</div><div class="stat-value">{{ total_hotels }}</div><div class="stat-note">Public listings</div></div></div>
     <div class="col"><div class="stat-card h-100"><div class="stat-label">Hotel Images</div><div class="stat-value">{{ hotel_images }}</div><div class="stat-note">Uploaded media</div></div></div>
+    <div class="col"><div class="stat-card h-100"><div class="stat-label">Enquiries</div><div class="stat-value">{{ enquiries_count }}</div><div class="stat-note">Collected via contact form</div></div></div>
+    <div class="col"><div class="stat-card h-100"><div class="stat-label">Pending Subadmins</div><div class="stat-value">{{ pending_subadmins|length }}</div><div class="stat-note">Awaiting approval</div></div></div>
   </div>
 
   <section id="hotels" class="mb-4">
@@ -24,7 +26,10 @@
         <h2 class="mb-1">Hotel Management</h2>
         <p class="text-muted mb-0">Create, edit, and remove hotel listings plus their image galleries.</p>
       </div>
-      <a class="btn btn-gold" href="{{ url_for('admin.add_hotel') }}">Add Hotel</a>
+      <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" href="{{ url_for('admin.download_enquiries') }}">Download Enquiries Excel</a>
+        <a class="btn btn-gold" href="{{ url_for('admin.add_hotel') }}">Add Hotel</a>
+      </div>
     </div>
     <div class="glass-card p-3 p-lg-4">
       <div class="table-responsive">
@@ -47,7 +52,7 @@
                 <div class="text-muted small">{{ hotel.room_type }}</div>
               </td>
               <td>{{ hotel.location }}</td>
-              <td>${{ '%.2f'|format(hotel.price) }}</td>
+              <td>Rs. {{ '%.2f'|format(hotel.price) }}</td>
               <td>
                 <span class="badge rounded-pill text-bg-{{ 'success' if hotel.is_available else 'secondary' }}">
                   {{ 'Available' if hotel.is_available else 'Booked' }}
@@ -106,6 +111,76 @@
           {% endfor %}
         </tbody>
       </table>
+    </div>
+  </section>
+
+  <section id="subadmins" class="mb-4">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+      <div>
+        <h2 class="mb-1">Subadmin Verification</h2>
+        <p class="text-muted mb-0">Approve staff accounts before they can use the admin tools.</p>
+      </div>
+    </div>
+    <div class="glass-card p-3 p-lg-4 mb-3">
+      <h3 class="h5 mb-3">Pending verification</h3>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr><th>Name</th><th>Username</th><th>Email</th><th>Created</th><th class="text-end">Action</th></tr>
+          </thead>
+          <tbody>
+            {% for subadmin in pending_subadmins %}
+            <tr>
+              <td>{{ subadmin.full_name }}</td>
+              <td>{{ subadmin.username }}</td>
+              <td>{{ subadmin.email }}</td>
+              <td>{{ subadmin.created_at }}</td>
+              <td class="text-end">
+                <form method="post" action="{{ url_for('admin.verify_subadmin', admin_id=subadmin.id) }}" class="d-inline">
+                  {{ delete_form.hidden_tag() }}
+                  <button type="submit" class="btn btn-sm btn-success">Verify</button>
+                </form>
+                <form method="post" action="{{ url_for('admin.delete_subadmin_request', admin_id=subadmin.id) }}" class="d-inline ms-1" onsubmit="return confirm('Delete this subadmin request?');">
+                  {{ delete_form.hidden_tag() }}
+                  <button type="submit" class="btn btn-sm btn-outline-danger">Delete Request</button>
+                </form>
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-center text-muted py-4">No pending subadmins right now.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="glass-card p-3 p-lg-4">
+      <h3 class="h5 mb-3">Verified subadmins</h3>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr><th>Name</th><th>Username</th><th>Email</th><th>Status</th><th class="text-end">Action</th></tr>
+          </thead>
+          <tbody>
+            {% for subadmin in verified_subadmins %}
+            <tr>
+              <td>{{ subadmin.full_name }}</td>
+              <td>{{ subadmin.username }}</td>
+              <td>{{ subadmin.email }}</td>
+              <td><span class="badge text-bg-success">Verified</span></td>
+              <td class="text-end">
+                <form method="post" action="{{ url_for('admin.remove_verified_subadmin', admin_id=subadmin.id) }}" class="d-inline" onsubmit="return confirm('Remove this verified subadmin account?');">
+                  {{ delete_form.hidden_tag() }}
+                  <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
+                </form>
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-center text-muted py-4">No verified subadmins yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
   </section>
 

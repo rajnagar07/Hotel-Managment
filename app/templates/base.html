@@ -39,6 +39,16 @@
                 Book Now
               </button>
             </li>
+            <li class="nav-item">
+              <button
+                type="button"
+                class="btn btn-outline-light btn-sm ms-2"
+                data-bs-toggle="modal"
+                data-bs-target="#enquiryModal"
+              >
+                Enquire Now
+              </button>
+            </li>
           </ul>
         </div>
       </div>
@@ -109,7 +119,7 @@
                   </div>
                 </div>
               </div>
-
+              
               <div class="col-lg-5">
                 <div class="contact-actions h-100 p-4 p-lg-4 d-flex flex-column justify-content-between">
                   <div>
@@ -132,8 +142,36 @@
         </div>
       </div>
     </div>
+        <div class="modal fade" id="enquiryModal" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+              <div class="modal-header">
+                <h5 class="modal-title">Customer Enquiry</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <form id="enquiryForm" novalidate>
+                  <div class="mb-3">
+                    <label for="enquiryName" class="form-label">Person Name</label>
+                    <input type="text" class="form-control" id="enquiryName" name="name" placeholder="Your full name" required>
+                    <div class="invalid-feedback">Please enter your name.</div>
+                  </div>
+                  <div class="mb-3">
+                    <label for="enquiryPhone" class="form-label">Phone Number</label>
+                    <input type="tel" class="form-control" id="enquiryPhone" name="phone" placeholder="e.g. +919876543210" required>
+                    <div class="invalid-feedback">Please enter a valid phone number (7–15 digits).</div>
+                  </div>
+                  <div class="d-grid">
+                    <button type="submit" class="btn btn-gold" id="enquirySubmit">Submit Enquiry</button>
+                  </div>
+                </form>
+                <div id="enquiryResult" class="mt-3" style="display:none;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="{{ url_for('static', filename='js/main.js') }}"></script>
   </body>
 </html>

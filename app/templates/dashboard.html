@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block content %}
+  <section class="hero-card p-4 p-lg-5 mb-4 shadow-sm">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-8">
+        <span class="eyebrow">Guest dashboard</span>
+        <h1 class="display-6 mt-2 mb-3">Welcome, {{ current_user.full_name or current_user.username }}.</h1>
+        <p class="lead mb-0">Track your room bookings, update your account, and get ready for your next stay.</p>
+      </div>
+      <div class="col-lg-4 text-lg-end">
+        <a href="{{ url_for('main.profile') }}" class="btn btn-gold me-2">Edit profile</a>
+        <a href="{{ url_for('main.index') }}#rooms" class="btn btn-outline-dark">Browse rooms</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="row g-4 mb-4">
+    <div class="col-md-4">
+      <div class="stat-card h-100">
+        <div class="stat-label">Bookings</div>
+        <div class="stat-value">{{ bookings|length }}</div>
+        <div class="stat-note">All reservations linked to your account</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stat-card h-100">
+        <div class="stat-label">Email</div>
+        <div class="stat-value text-truncate">{{ current_user.email }}</div>
+        <div class="stat-note">Used for login and notifications</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stat-card h-100">
+        <div class="stat-label">Phone</div>
+        <div class="stat-value text-truncate">{{ current_user.phone }}</div>
+        <div class="stat-note">Keep it current for booking support</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card glass-card p-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h3 class="mb-0">Your bookings</h3>
+      <span class="text-muted small">{{ bookings|length }} total</span>
+    </div>
+    {% if bookings %}
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Room</th>
+              <th>Check-in</th>
+              <th>Check-out</th>
+              <th>Status</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for booking in bookings %}
+              <tr>
+                <td>
+                  <strong>{{ booking.room.room_type if booking.room else 'Room' }}</strong><br>
+                  <span class="text-muted small">{{ booking.room.number if booking.room else '' }}</span>
+                </td>
+                <td>{{ booking.check_in }}</td>
+                <td>{{ booking.check_out }}</td>
+                <td><span class="badge rounded-pill text-bg-success">{{ booking.status or 'confirmed' }}</span></td>
+                <td>Rs. {{ '%.2f'|format(booking.total_price or 0) }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state text-center py-5">
+        <h4>No bookings yet</h4>
+        <p class="text-muted mb-4">Book your first room to see it appear here.</p>
+        <a href="{{ url_for('main.index') }}#rooms" class="btn btn-gold">Explore rooms</a>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

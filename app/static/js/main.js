@@ -90,4 +90,83 @@ document.addEventListener('DOMContentLoaded', function () {
       if (emailBtn && email) emailBtn.setAttribute('href', `mailto:${email}?subject=${encodeURIComponent(`${hotelName} inquiry`)}`);
     });
   }
+
+  // Enquiry form handling (AJAX)
+  const enquiryForm = document.getElementById('enquiryForm');
+  if (enquiryForm) {
+    enquiryForm.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const nameInput = document.getElementById('enquiryName');
+      const phoneInput = document.getElementById('enquiryPhone');
+      const resultEl = document.getElementById('enquiryResult');
+
+      // simple client-side validation
+      let valid = true;
+      if (!nameInput.value.trim()) {
+        nameInput.classList.add('is-invalid');
+        valid = false;
+      } else {
+        nameInput.classList.remove('is-invalid');
+      }
+
+      const digits = (phoneInput.value || '').replace(/\D+/g, '');
+      if (digits.length < 7 || digits.length > 15) {
+        phoneInput.classList.add('is-invalid');
+        valid = false;
+      } else {
+        phoneInput.classList.remove('is-invalid');
+      }
+
+      if (!valid) return;
+
+      const submitBtn = document.getElementById('enquirySubmit');
+      const originalText = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending...';
+
+      try {
+        const resp = await fetch('/enquire', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: nameInput.value.trim(), phone: phoneInput.value.trim() }),
+        });
+        const data = await resp.json();
+        if (resp.ok && data.success) {
+          // show success and reset
+          if (resultEl) {
+            resultEl.style.display = 'block';
+            resultEl.className = 'alert alert-success';
+            resultEl.textContent = data.message || 'Enquiry received.';
+          }
+          enquiryForm.reset();
+          // close modal after short delay
+          setTimeout(() => {
+            const modalEl = document.getElementById('enquiryModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+            if (resultEl) {
+              resultEl.style.display = 'none';
+              resultEl.textContent = '';
+            }
+          }, 1200);
+        } else {
+          const msg = (data && data.message) || 'Submission failed. Please try again later.';
+          if (resultEl) {
+            resultEl.style.display = 'block';
+            resultEl.className = 'alert alert-danger';
+            resultEl.textContent = msg;
+          }
+        }
+      } catch (err) {
+        if (resultEl) {
+          resultEl.style.display = 'block';
+          resultEl.className = 'alert alert-danger';
+          resultEl.textContent = 'Network error. Please try again.';
+        }
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
+    });
+  }
 });

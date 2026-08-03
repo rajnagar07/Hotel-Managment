@@ -179,7 +179,7 @@ sqlalchemy.exc.ProgrammingError
 4. **Run setup script:**
    ```bash
    python setup.py
-   # This creates tables and admin user
+   # This creates tables, backfills any missing columns, and seeds the admin user
    ```
 
 5. **Start app:**

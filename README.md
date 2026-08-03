@@ -1,155 +1,147 @@
 # Hotel Management (Flask + Supabase PostgreSQL)
 
-This is a beginner-friendly hotel management web application built with Flask, Bootstrap 5, **Supabase PostgreSQL**, SQLAlchemy, Pandas and OpenPyXL.
+Production-oriented hotel management app built with Flask, SQLAlchemy, WTForms, and Supabase PostgreSQL.
 
-## Quick Start
+## What this app includes
 
-1. **Get Supabase credentials:**
-   - Sign up at [https://supabase.com](https://supabase.com)
-   - Create a new project
-   - Go to Project Settings > Database > Connection String (URI mode)
-   - Copy the PostgreSQL connection string
+- Public hotel and room listing pages
+- Booking flow for customers
+- Admin dashboard for hotel/room content management
+- Public **subadmin signup** with **admin verification** workflow
+- Excel-based import and enquiry export utilities
+- CSRF protection and password hashing
 
-2. **Configure environment:**
-   ```bash
-   # Copy .env.example to .env
-   copy .env.example .env
-   ```
-   Edit `.env` and paste your Supabase connection string:
-   ```
-   DATABASE_URL=postgresql://postgres:your_password@db.xxxxx.supabase.co:5432/postgres
-   SECRET_KEY=your-secure-key
-   ```
+## Tech stack
 
-3. **Create virtual environment:**
-   ```bash
-   python -m venv venv
-   venv\Scripts\activate  # Windows PowerShell: . .\venv\Scripts\Activate.ps1
-   ```
+- Flask
+- Flask-SQLAlchemy
+- Flask-Login
+- Flask-WTF
+- Supabase PostgreSQL (`psycopg2-binary`)
+- Gunicorn (WSGI)
+- Nginx (reverse proxy/static)
 
-4. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+## Local setup (Windows PowerShell)
 
-5. **Run the app:**
-   ```bash
-   python run.py
-   ```
-   The app will auto-create database tables on first run.
-   Visit [http://localhost:5000](http://localhost:5000)
+1. Clone and enter the project.
+2. Create and activate venv.
+3. Install dependencies.
+4. Create `.env` from `.env.example`.
+5. Run one-time setup.
+6. Start the app.
 
-## Database Setup
+```powershell
+python -m venv venv
+. .\venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+copy .env.example .env
+python setup.py
+python run.py
+```
 
-- **Driver:** psycopg2-binary (PostgreSQL)
-- **Database:** Supabase PostgreSQL
-- **Automatic table creation:** Tables are created on app startup if they don't exist
-- **Connection pooling:** Configured for optimal performance and reliability
+Open:
 
-## Features
+- Home: `http://127.0.0.1:5000`
+- Admin login: `http://127.0.0.1:5000/admin/login`
 
-- ✅ Supabase PostgreSQL backend
-- ✅ User authentication with Flask-Login
-- ✅ Admin dashboard
-- ✅ Room management with image uploads
-- ✅ Booking system
-- ✅ Excel import/export (Pandas + OpenPyXL)
-- ✅ Responsive Bootstrap 5 UI
-- ✅ CSRF protection
-- ✅ Password hashing
+## Admin and subadmin account flow
+
+- If no admin exists, `/admin/signup` can create the **first admin**.
+- After that, public signup is limited to **subadmin** creation.
+- Subadmins cannot access dashboard until verified by an admin.
+- Admin verifies pending subadmins from the dashboard section:
+  - **Subadmin Verification**
+
+## Environment variables
+
+Use `.env.example` as the source of truth. Minimum required for runtime:
+
+- `SECRET_KEY`
+- `DATABASE_URL`
+
+Strongly recommended for production:
+
+- `FLASK_ENV=production`
+- `FLASK_DEBUG=0`
+- `SESSION_COOKIE_SECURE=1`
+- `SESSION_COOKIE_HTTPONLY=1`
+- `MAX_CONTENT_LENGTH=16777216`
+
+Setup/bootstrap variables used by `setup.py`:
+
+- `DEFAULT_ADMIN_USERNAME`
+- `DEFAULT_ADMIN_EMAIL`
+- `DEFAULT_ADMIN_PASSWORD`
+- `DEFAULT_ADMIN_FULL_NAME` (optional)
+
+## Database initialization and migrations
+
+Run this after first clone and after model changes:
+
+```bash
+python setup.py
+```
+
+`setup.py` handles:
+
+- table creation
+- required column backfills
+- admin bootstrap/update
+
+## Production deployment (VPS)
+
+Use the included templates:
+
+- `gunicorn.conf.py`
+- `hotel-management.service`
+- `nginx.conf.example`
+
+Recommended order:
+
+1. Clone repo on VPS
+2. Create venv and install requirements
+3. Create `.env` with production values
+4. Run `python setup.py`
+5. Install and start `hotel-management.service`
+6. Configure Nginx from `nginx.conf.example`
+7. Set up SSL with Certbot
+
+## Useful files
+
+- `config.py` — app configuration
+- `run.py` — Flask app entry point
+- `setup.py` — one-time setup and schema backfills
+- `app/models.py` — SQLAlchemy models
+- `app/routes/admin.py` — admin auth, verification, and dashboard
+- `DEPLOYMENT.md` — detailed deployment guide
+- `MIGRATION.md` — migration notes
 
 ## Troubleshooting
 
-**Connection Error:**
-- Verify DATABASE_URL in `.env` is correct
-- Check Supabase project is active
-- Ensure your IP is allowed in Supabase firewall (usually auto-enabled)
+### Login works but signup won’t create admin
 
-**Module not found:**
-- Make sure venv is activated: `. .\venv\Scripts\Activate.ps1` (PowerShell)
-- Reinstall: `pip install -r requirements.txt`
+Expected if an admin already exists and user is not logged in.
+Public signup creates subadmins only (who need admin verification).
 
-**Table creation failed:**
-- Verify PostgreSQL connection works first
-- Check Supabase database exists
-- Restart the app; tables auto-create on startup
+### `column user.role does not exist`
 
-## Project Structure
-
-```
-hotel-management/
-├── app/
-│   ├── static/      # CSS, JS, images
-│   ├── templates/   # HTML templates
-│   ├── routes/      # Flask blueprints
-│   ├── models.py    # SQLAlchemy models
-│   ├── forms.py     # WTForms
-│   ├── services/    # Business logic (Excel utils)
-│   └── __init__.py  # App factory
-├── config.py        # Configuration (PostgreSQL)
-├── run.py           # Entry point
-├── requirements.txt # Python dependencies
-├── .env.example     # Environment template (Supabase)
-└── README.md        # This file
-```
-
-## Production Deployment
-
-### Render.com (with Supabase)
-
-1. Push code to GitHub
-2. Connect GitHub to Render.com
-3. Create Web Service
-4. Set environment variables (DATABASE_URL from Supabase)
-5. Deploy
-
-### Manual VPS Deployment
+Run:
 
 ```bash
-# SSH to server
-ssh user@your-vps
-
-# Clone repository
-git clone your-repo.git
-cd hotel-management
-
-# Create venv and install
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-
-# Set environment variables
-export DATABASE_URL="postgresql://..."
-export SECRET_KEY="..."
-
-# Run with Gunicorn
-gunicorn -w 4 -b 0.0.0.0:5000 run:app
+python setup.py
 ```
 
-## Database Models
+### App fails at startup
 
-- **User** - Admin/user accounts with password hashing
-- **Room** - Hotel rooms with pricing and availability
-- **Customer** - Guest information
-- **Booking** - Room reservations with dates
-- **Payment** - Payment records
-- **Review** - Guest reviews and ratings
+Check:
 
-All models use proper PostgreSQL constraints, indexes, and relationships.
+- `.env` exists
+- `SECRET_KEY` is set
+- `DATABASE_URL` is valid and reachable
 
-## Testing
+## Security notes
 
-```bash
-# Activate venv and run
-python run.py
-
-# Access at http://localhost:5000
-# Admin panel: http://localhost:5000/admin
-```
-
-## Support
-
-- Check `.env.example` for configuration options
-- Verify DATABASE_URL format is correct
-- Ensure psycopg2-binary is installed: `pip install psycopg2-binary`
-- Check Supabase status at [supabase.com/status](https://supabase.com/status)
+- Never commit `.env`
+- Rotate credentials immediately if secrets were exposed
+- Keep uploaded media folders backed up on VPS
+- Prefer HTTPS-only access in production

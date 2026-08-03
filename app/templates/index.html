@@ -60,7 +60,7 @@
             <p class="card-text text-muted flex-grow-1">{{ hotel.description }}</p>
             <div class="d-flex flex-wrap gap-2 mb-3">
               <span class="mini-pill">{{ hotel.room_type }}</span>
-              <span class="mini-pill">${{ '%.2f'|format(hotel.price) }}/night</span>
+              <span class="mini-pill">Rs. {{ '%.2f'|format(hotel.price) }}/night</span>
             </div>
             <div class="mb-3">
               {% for amenity in hotel.amenities_list[:3] %}
@@ -148,7 +148,7 @@
           <div class="card-body">
             <h5 class="card-title">{{ room.room_type }} - {{ room.number }}</h5>
             <p class="card-text">{{ room.description or 'Comfortable and elegant.' }}</p>
-            <p class="fw-bold">${{ '%.2f'|format(room.price) }}</p>
+            <p class="fw-bold">Rs. {{ '%.2f'|format(room.price) }}</p>
             <div class="d-flex flex-wrap gap-2">
               <a href="{{ url_for('main.room_detail', room_id=room.id) }}" class="btn btn-outline-dark flex-grow-1">View</a>
               <button

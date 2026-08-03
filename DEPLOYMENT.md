@@ -146,6 +146,7 @@ EOF
 ```bash
 python setup.py
 ```
+Run this once before starting Gunicorn so the tables and admin seed are created.
 
 ### Step 7: Configure Supervisor (Process Manager)
 
@@ -206,9 +207,9 @@ certbot --nginx -d your.domain.com
 
 ### Step 10: Check Status
 ```bash
-supervisorctl status hotel
+systemctl status hotel-management
 systemctl status nginx
-curl http://localhost:5000
+curl http://127.0.0.1:8000
 ```
 
 ---

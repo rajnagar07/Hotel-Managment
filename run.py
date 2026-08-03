@@ -40,5 +40,5 @@ if __name__ == '__main__':
             else:
                 print('[INFO] Error does not look like a connectivity issue. Not attempting fallback.')
 
-    # Start the development server
-    app.run(debug=True)
+    # Start the development server only when invoked directly.
+    app.run(debug=app.config.get('DEBUG', False))

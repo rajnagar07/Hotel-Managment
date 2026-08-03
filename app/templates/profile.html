@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card glass-card p-4 p-lg-5 shadow-sm">
+        <div class="mb-4">
+          <span class="eyebrow">Profile</span>
+          <h2 class="mt-2 mb-2">Edit your account details</h2>
+          <p class="text-muted mb-0">Keep your contact information current for a smoother booking experience.</p>
+        </div>
+        <form method="post" novalidate>
+          {{ form.hidden_tag() }}
+          <div class="row g-3">
+            <div class="col-md-6">
+              {{ form.full_name.label(class='form-label fw-semibold') }}
+              {{ form.full_name(class='form-control form-control-lg') }}
+              {% for error in form.full_name.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+            </div>
+            <div class="col-md-6">
+              {{ form.username.label(class='form-label fw-semibold') }}
+              {{ form.username(class='form-control form-control-lg') }}
+              {% for error in form.username.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+            </div>
+            <div class="col-md-6">
+              {{ form.email.label(class='form-label fw-semibold') }}
+              {{ form.email(class='form-control form-control-lg') }}
+              {% for error in form.email.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+            </div>
+            <div class="col-md-6">
+              {{ form.phone.label(class='form-label fw-semibold') }}
+              {{ form.phone(class='form-control form-control-lg') }}
+              {% for error in form.phone.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+            </div>
+          </div>
+          <div class="d-flex flex-wrap gap-2 mt-4">
+            {{ form.submit(class='btn btn-gold btn-lg') }}
+            <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-dark btn-lg">Back to dashboard</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}
