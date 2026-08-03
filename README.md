@@ -145,3 +145,8 @@ Check:
 - Rotate credentials immediately if secrets were exposed
 - Keep uploaded media folders backed up on VPS
 - Prefer HTTPS-only access in production
+
+## Author
+
+Built by Raj Nagar
+
