@@ -3,7 +3,7 @@
   <div class="row justify-content-center">
     <div class="col-lg-8">
       <div class="card glass-card p-4 p-lg-5 shadow-sm">
-        <h2 class="mb-4">Add Room</h2>
+        <h2 class="mb-4">{{ 'Edit Room' if room else 'Add Room' }}</h2>
         <form method="post" enctype="multipart/form-data">
           {{ form.hidden_tag() }}
           <div class="row g-3">
@@ -19,6 +19,19 @@
           </div>
           <div class="mt-4">{{ form.submit(class='btn btn-gold') }}</div>
         </form>
+        {% if room and room.images %}
+          <hr class="my-4">
+          <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+            <div>
+              <div class="fw-semibold">Current room photo</div>
+              <img src="{{ url_for('main.uploaded_file', filename=room.images.replace('\\', '/').split('/')[-1]) }}" class="img-fluid rounded mt-2" style="max-height:180px" alt="{{ room.room_type }}">
+            </div>
+            <form method="post" action="{{ url_for('admin.delete_room_image', room_id=room.id) }}" onsubmit="return confirm('Delete this room photo?');">
+              {{ delete_form.hidden_tag() }}
+              <button type="submit" class="btn btn-outline-danger">Delete Photo</button>
+            </form>
+          </div>
+        {% endif %}
       </div>
     </div>
   </div>

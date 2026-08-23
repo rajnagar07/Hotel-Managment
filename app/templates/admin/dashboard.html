@@ -92,6 +92,34 @@
       </div>
       <a class="btn btn-gold" href="{{ url_for('admin.new_room') }}">Add Room</a>
     </div>
+    <div class="glass-card p-3 p-lg-4">
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead><tr><th>Room</th><th>Type</th><th>Price</th><th>Photo</th><th class="text-end">Actions</th></tr></thead>
+          <tbody>
+            {% for room in recent_rooms %}
+            <tr>
+              <td>{{ room.number }}</td>
+              <td>{{ room.room_type }}</td>
+              <td>Rs. {{ '%.2f'|format(room.price) }}</td>
+              <td>{{ 'Uploaded' if room.images else 'None' }}</td>
+              <td class="text-end">
+                <div class="d-inline-flex gap-2 flex-wrap justify-content-end">
+                  <a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin.edit_room', room_id=room.id) }}">Edit / Photos</a>
+                  <form method="post" action="{{ url_for('admin.delete_room', room_id=room.id) }}" class="d-inline" onsubmit="return confirm('Delete this room and its photo?');">
+                    {{ delete_form.hidden_tag() }}
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-center text-muted py-4">No rooms added yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
   </section>
 
   <section id="bookings" class="mb-4">
@@ -193,6 +221,7 @@
     <h2 class="mb-3">Upload Excel</h2>
     <div class="glass-card p-3">
       <form method="post" enctype="multipart/form-data" action="{{ url_for('admin.excel_preview_admin') }}">
+        {{ delete_form.hidden_tag() }}
         <div class="input-group">
           <input type="file" class="form-control" name="file" required>
           <button class="btn btn-gold" type="submit">Preview Upload</button>

@@ -118,6 +118,15 @@ class BookingForm(FlaskForm):
     check_out = DateField('Check-out', validators=[DataRequired()])
     submit = SubmitField('Book Now')
 
+    def validate_check_in(self, check_in):
+        from datetime import date
+        if check_in.data and check_in.data < date.today():
+            raise ValidationError('Check-in cannot be in the past.')
+
+    def validate_check_out(self, check_out):
+        if self.check_in.data and check_out.data <= self.check_in.data:
+            raise ValidationError('Check-out must be after check-in.')
+
 
 # -----------------------------
 # Excel upload form

@@ -3,7 +3,7 @@
   <div class="row g-4 align-items-start">
     <div class="col-lg-7">
       {% if room.images %}
-        <img class="img-fluid rounded-4 shadow-sm w-100 hotel-detail-image" src="{{ url_for('main.uploaded_file', filename=room.images) }}" alt="{{ room.room_type }}">
+        <img class="img-fluid rounded-4 shadow-sm w-100 hotel-detail-image gallery-img" src="{{ url_for('main.uploaded_file', filename=room.images.replace('\\', '/').split('/')[-1]) }}" alt="{{ room.room_type }}">
       {% else %}
         <div class="hotel-card-placeholder hotel-detail-placeholder rounded-4 d-flex align-items-center justify-content-center">
           <div class="text-center p-5">

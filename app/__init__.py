@@ -44,6 +44,17 @@ def create_app(config_class=Config):
     mail.init_app(app)
     csrf.init_app(app)
 
+    @app.after_request
+    def add_security_headers(response):
+        """Add baseline browser protections to every response."""
+        response.headers.setdefault('X-Content-Type-Options', 'nosniff')
+        response.headers.setdefault('X-Frame-Options', 'SAMEORIGIN')
+        response.headers.setdefault('Referrer-Policy', 'strict-origin-when-cross-origin')
+        response.headers.setdefault('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+        if not app.debug:
+            response.headers.setdefault('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
+        return response
+
     # Ensure upload/export folders exist so file operations won't fail
     os.makedirs(app.config.get('UPLOAD_FOLDER', 'uploads'), exist_ok=True)
     os.makedirs(app.config.get('EXPORT_FOLDER', 'exports'), exist_ok=True)

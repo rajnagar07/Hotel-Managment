@@ -43,18 +43,26 @@ def _serialize_hotel(hotel):
 def index():
     """Render homepage with featured hotels and rooms."""
     hotels = Hotel.query.order_by(Hotel.created_at.desc()).limit(6).all()
+    room_section_hotels = Hotel.query.order_by(Hotel.created_at.desc()).all()
     rooms = Room.query.limit(6).all()
     gallery_images = [image.image_url for hotel in hotels for image in hotel.images][:6]
-    return render_template('index.html', hotels=hotels, rooms=rooms, gallery_images=gallery_images)
+    return render_template('index.html', hotels=hotels, room_section_hotels=room_section_hotels, rooms=rooms, gallery_images=gallery_images)
+
+
+@main_bp.route('/health')
+def health():
+    """Lightweight readiness endpoint for load balancers and monitoring."""
+    return jsonify({'status': 'ok'})
 
 
 @main_bp.route('/hotels')
 def hotels():
     """Dedicated public page showing all hotel listings."""
     hotels = Hotel.query.order_by(Hotel.created_at.desc()).all()
+    room_section_hotels = hotels
     rooms = Room.query.limit(6).all()
     gallery_images = [image.image_url for hotel in hotels for image in hotel.images][:6]
-    return render_template('index.html', hotels=hotels, rooms=rooms, gallery_images=gallery_images)
+    return render_template('index.html', hotels=hotels, room_section_hotels=room_section_hotels, rooms=rooms, gallery_images=gallery_images)
 
 
 @main_bp.route('/hotel/<int:hotel_id>')
@@ -160,7 +168,7 @@ def uploaded_file(filename):
     - This is a simple helper used during development. In production,
       use a proper static file server or CDN.
     """
-    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], secure_filename(filename))
 
 
 # -----------------------------

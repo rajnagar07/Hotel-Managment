@@ -123,11 +123,18 @@ if __name__ == '__main__':
         print('Add: DATABASE_URL=postgresql://...')
         sys.exit(1)
 
-    # Run setup steps
-    success = True
-    success &= verify_connection()
-    success &= setup_database()
-    success &= create_admin_user()
+    # Do not run schema changes or admin bootstrap when the database is
+    # unavailable. This avoids repeating the same connection error three
+    # times and prevents a misleading partial-setup result.
+    if not verify_connection():
+        print('='*60)
+        print('✗ Setup stopped because the database is unavailable.')
+        print('='*60 + '\n')
+        sys.exit(1)
+
+    success = setup_database()
+    if success:
+        success = create_admin_user()
 
     if success:
         print('='*60)

@@ -1,10 +1,14 @@
 {% extends 'base.html' %}
 {% block content %}
   <section class="hero-card p-4 p-lg-5 mb-5 overflow-hidden">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
     <div class="row align-items-center g-4">
       <div class="col-lg-7">
-        <span class="eyebrow">Luxury stays</span>
-        <h1 class="display-5 mt-2 mb-3">Discover elegant hotels with live availability and image galleries</h1>
+        <span class="hero-rating-chip">★★★★★ 4.8 · Loved by guests</span>
+        <span class="eyebrow d-block" style="width:fit-content">Luxury stays</span>
+        <h1 class="display-5 mt-2 mb-3">Discover <span class="grad-text grad-underline">elegant hotels</span> with live availability and image galleries</h1>
         <p class="lead mb-4">Browse dynamic hotel listings, explore amenities, and jump into the booking experience without logging in.</p>
         <div class="d-flex gap-2 flex-wrap">
           <a href="#hotels" class="btn btn-gold btn-lg">Explore Hotels</a>
@@ -24,9 +28,78 @@
         {% endif %}
       </div>
     </div>
+    <div class="hero-scroll-cue"><span></span></div>
   </section>
 
-  <section id="hotels" class="mb-5">
+  <section class="mb-5 reveal">
+    <div class="stats-band">
+      <div class="row g-4">
+        <div class="col-6 col-md-3">
+          <div class="stat-block">
+            <div class="stat-number"><span data-count-to="12" data-count-suffix="+">0</span></div>
+            <div class="stat-caption">Years of trust</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-block">
+            <div class="stat-number"><span data-count-to="5000" data-count-suffix="+">0</span></div>
+            <div class="stat-caption">Happy guests</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-block">
+            <div class="stat-number"><span data-count-to="{{ hotels|length }}">0</span></div>
+            <div class="stat-caption">Hotels listed</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-block">
+            <div class="stat-number"><span data-count-to="48" data-count-suffix="/5">0</span></div>
+            <div class="stat-caption">Average rating</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mb-5 reveal">
+    <div class="text-center mx-auto section-lead">
+      <span class="eyebrow">Why choose us</span>
+      <h2 class="mt-2 mb-3">Everything you need for a comfortable stay</h2>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-3">
+        <div class="feature-card">
+          <div class="feature-icon icon-gold">⚡</div>
+          <h5 class="mb-2">Instant Booking</h5>
+          <p class="text-muted mb-0">Call, WhatsApp, or email in one tap — no forms, no waiting.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="feature-card">
+          <div class="feature-icon icon-purple">📶</div>
+          <h5 class="mb-2">Free High-Speed WiFi</h5>
+          <p class="text-muted mb-0">Stay connected throughout your stay, in every room.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="feature-card">
+          <div class="feature-icon icon-coral">📍</div>
+          <h5 class="mb-2">Prime Location</h5>
+          <p class="text-muted mb-0">Close to major attractions with easy access and parking.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="feature-card">
+          <div class="feature-icon icon-teal">🛎️</div>
+          <h5 class="mb-2">24/7 Support</h5>
+          <p class="text-muted mb-0">Our team is always reachable for anything you need.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="hotels" class="mb-5 reveal">
     <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
       <div>
         <span class="eyebrow">Hotels</span>
@@ -38,7 +111,7 @@
       <div class="col-md-6 col-xl-4">
         <div class="card glass-card h-100 overflow-hidden hotel-card">
           {% if hotel.cover_image_url %}
-            <img src="{{ hotel.cover_image_url }}" class="card-img-top hotel-card-img" alt="{{ hotel.hotel_name }}">
+            <img src="{{ hotel.cover_image_url }}" class="card-img-top hotel-card-img gallery-img" alt="{{ hotel.hotel_name }}">
           {% else %}
             <div class="hotel-card-placeholder d-flex align-items-center justify-content-center">
               <div class="text-center p-4">
@@ -98,17 +171,56 @@
     </div>
   </section>
 
-  <section id="gallery" class="mb-5">
+  <section id="rooms" class="mb-5 reveal">
+    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+      <div>
+        <span class="eyebrow">Rooms</span>
+        <h2 class="mt-2 mb-0">Choose your stay</h2>
+      </div>
+    </div>
+    <div class="row g-4">
+      {% for room in rooms %}
+      <div class="col-md-6 col-xl-4">
+        <div class="card glass-card h-100 overflow-hidden hotel-card">
+          {% if room.images %}
+            <img loading="lazy" src="{{ url_for('main.uploaded_file', filename=room.images.replace('\\', '/').split('/')[-1]) }}" class="card-img-top hotel-card-img gallery-img" alt="{{ room.room_type }} room {{ room.number }}">
+          {% else %}
+            <div class="hotel-card-placeholder room-card-placeholder d-flex align-items-center justify-content-center"><div class="text-center p-4"><div class="hotel-placeholder-icon mb-3">🛏️</div><div class="fw-semibold">Room preview coming soon</div></div></div>
+          {% endif %}
+          <div class="card-body d-flex flex-column">
+            <h5 class="card-title">{{ room.room_type }} · {{ room.number }}</h5>
+            <p class="card-text text-muted flex-grow-1">{{ room.description or 'Comfortable and elegant.' }}</p>
+            <p class="fw-bold fs-5">Rs. {{ '%.2f'|format(room.price) }} <small class="text-muted fw-normal">/ night</small></p>
+            <div class="d-flex gap-2"><a href="{{ url_for('main.room_detail', room_id=room.id) }}" class="btn btn-outline-dark flex-grow-1">View Room</a><a href="{{ url_for('main.book', room_id=room.id) }}" class="btn btn-gold flex-grow-1">Reserve</a></div>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="col-12"><div class="glass-card p-4 text-center"><h5 class="mb-2">No rooms available yet</h5><p class="text-muted mb-0">Our next beautiful stay is being prepared.</p></div></div>
+      {% endfor %}
+    </div>
+    <!-- {% if room_section_hotels|selectattr('images')|list %}
+      <div class="mt-5 mb-3"><span class="eyebrow">Hotel photos</span><h3 class="mt-2 mb-0">More places to stay</h3></div>
+      <div class="row g-4">
+        {% for hotel in room_section_hotels %}{% for image in hotel.images %}
+        <div class="col-md-6 col-xl-4"><div class="card glass-card h-100 overflow-hidden hotel-card"><img loading="lazy" src="{{ image.image_url }}" class="card-img-top hotel-card-img" alt="{{ hotel.hotel_name }} photo {{ loop.index }}"><div class="card-body d-flex flex-column"><h5 class="card-title">{{ hotel.hotel_name }}</h5><p class="text-muted mb-3">{{ hotel.location }} · {{ hotel.room_type }}</p><a href="{{ url_for('main.hotel_detail', hotel_id=hotel.id) }}" class="btn btn-outline-dark mt-auto">View Hotel</a></div></div></div>
+        {% endfor %}{% endfor %}
+      </div>
+    {% endif %} -->
+  </section>
+
+  <section id="gallery" class="mb-5 reveal">
     <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
       <div>
         <span class="eyebrow">Gallery</span>
         <h2 class="mt-2 mb-0">Explore the hotel experience</h2>
+        <p class="text-muted mb-0">Tap any photo to view it full-screen.</p>
       </div>
     </div>
     <div class="row g-4">
       {% for image in gallery_images %}
       <div class="col-md-4">
-        <img src="{{ image }}" class="img-fluid rounded-4 shadow-sm gallery-img" alt="Hotel gallery image">
+        <img loading="lazy" src="{{ image }}" class="img-fluid rounded-4 shadow-sm gallery-img" alt="Hotel gallery image {{ loop.index }}">
       </div>
       {% else %}
       <div class="col-12">
@@ -118,79 +230,64 @@
     </div>
   </section>
 
-  <section id="about" class="mb-5">
-    <span class="eyebrow">About</span>
-    <h2 class="mt-2">A warm, modern stay for every guest</h2>
-    <p class="lead">Family-run luxury hotel with warm hospitality, refined rooms, and simple booking.</p>
-  </section>
-
-  <section id="rooms" class="mb-5">
-    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
-      <div>
-        <span class="eyebrow">Rooms</span>
-        <h2 class="mt-2 mb-0">Choose your stay</h2>
-      </div>
+  <section class="mb-5 reveal">
+    <div class="text-center mx-auto section-lead">
+      <span class="eyebrow">Guest reviews</span>
+      <h2 class="mt-2 mb-3">What our guests say</h2>
     </div>
     <div class="row g-4">
-      {% for room in rooms %}
       <div class="col-md-4">
-        <div class="card glass-card h-100 overflow-hidden">
-          {% if room.images %}
-            <img src="{{ url_for('main.uploaded_file', filename=room.images) }}" class="card-img-top hotel-card-img" alt="{{ room.room_type }}">
-          {% else %}
-            <div class="hotel-card-placeholder room-card-placeholder d-flex align-items-center justify-content-center">
-              <div class="text-center p-4">
-                <div class="hotel-placeholder-icon mb-3">🛏️</div>
-                <div class="fw-semibold">Room preview coming soon</div>
-              </div>
-            </div>
-          {% endif %}
-          <div class="card-body">
-            <h5 class="card-title">{{ room.room_type }} - {{ room.number }}</h5>
-            <p class="card-text">{{ room.description or 'Comfortable and elegant.' }}</p>
-            <p class="fw-bold">Rs. {{ '%.2f'|format(room.price) }}</p>
-            <div class="d-flex flex-wrap gap-2">
-              <a href="{{ url_for('main.room_detail', room_id=room.id) }}" class="btn btn-outline-dark flex-grow-1">View</a>
-              <button
-                type="button"
-                class="btn btn-gold flex-grow-1"
-                data-bs-toggle="modal"
-                data-bs-target="#hotelContactModal"
-                data-book-now
-                data-hotel-name="Family Hotel"
-                data-phone="+919630099023"
-                data-whatsapp="+919630099023"
-                data-email="ujjainhotelbooking@gmail.com"
-                data-address="Ujjain, Madhya Pradesh, India"
-              >
-                Book Now
-              </button>
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="mb-4">"Spotless rooms, warm hospitality, and the booking process took two minutes over WhatsApp. Highly recommend."</p>
+          <div class="d-flex align-items-center gap-3">
+            <div class="testimonial-avatar">A</div>
+            <div>
+              <div class="fw-semibold">Ankit S.</div>
+              <div class="text-muted small">Business traveller</div>
             </div>
           </div>
         </div>
       </div>
-      {% else %}
-      <div class="col-12">
-        <div class="glass-card p-4 text-center">
-          <h5 class="mb-2">No rooms available yet</h5>
-          <p class="text-muted mb-0">Add rooms from the admin area to let guests browse and book.</p>
+      <div class="col-md-4">
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="mb-4">"Felt like staying with family. The staff went out of their way to make our trip comfortable."</p>
+          <div class="d-flex align-items-center gap-3">
+            <div class="testimonial-avatar">P</div>
+            <div>
+              <div class="fw-semibold">Priya M.</div>
+              <div class="text-muted small">Family vacation</div>
+            </div>
+          </div>
         </div>
       </div>
-      {% endfor %}
+      <div class="col-md-4">
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="mb-4">"Great location, clean rooms, and honest pricing. Will definitely book again on our next visit."</p>
+          <div class="d-flex align-items-center gap-3">
+            <div class="testimonial-avatar">R</div>
+            <div>
+              <div class="fw-semibold">Rahul D.</div>
+              <div class="text-muted small">Weekend getaway</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
-  <section id="contact" class="mb-5">
-    <span class="eyebrow">Contact</span>
-    <h2 class="mt-2">We’re here to help</h2>
-    <p>
-      <a href="tel:9630099023" class="me-3 text-decoration-none">
-        Call: <span class="fw-semibold">+919630099023</span>
-      </a>
-      <a href="mailto:ujjainhotelbooking@gmail.com?subject=Booking%20inquiry" class="text-decoration-none">
-        Email: <span class="fw-semibold">ujjainhotelbooking@gmail.com</span>
-      </a>
-    </p>
+  <section id="contact" class="mb-5 reveal">
+    <div class="stats-band text-center">
+      <span class="eyebrow">Contact</span>
+      <h2 class="mt-2 mb-3 text-white">We're here to help — reach out anytime</h2>
+      <div class="d-flex flex-wrap justify-content-center gap-3">
+        <a href="tel:+919630099023" class="btn btn-call btn-lg">Call: +91 96300 99023</a>
+        <a href="https://wa.me/919630099023" target="_blank" rel="noopener" class="btn btn-whatsapp btn-lg">WhatsApp Us</a>
+        <a href="mailto:ujjainhotelbooking@gmail.com?subject=Booking%20inquiry" class="btn btn-email btn-lg">Email Us</a>
+      </div>
+    </div>
   </section>
 
 {% endblock %}

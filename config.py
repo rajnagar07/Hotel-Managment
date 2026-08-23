@@ -11,6 +11,12 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 load_dotenv(os.path.join(basedir, '.env'))
 
 
+def _project_path(value, default):
+    """Resolve relative storage paths from the project root, not the CWD."""
+    path = value or default
+    return path if os.path.isabs(path) else os.path.join(basedir, path)
+
+
 def _env_flag(name, default=False):
     value = os.environ.get(name)
     if value is None:
@@ -50,12 +56,14 @@ class Config:
     DEBUG = _env_flag('FLASK_DEBUG', FLASK_ENV.lower() == 'development')
     SESSION_COOKIE_SECURE = _env_flag('SESSION_COOKIE_SECURE', FLASK_ENV.lower() == 'production')
     SESSION_COOKIE_HTTPONLY = _env_flag('SESSION_COOKIE_HTTPONLY', True)
+    SESSION_COOKIE_SAMESITE = os.environ.get('SESSION_COOKIE_SAMESITE', 'Lax')
     MAX_CONTENT_LENGTH = int(os.environ.get('MAX_CONTENT_LENGTH', 16 * 1024 * 1024))
+    AUTO_CREATE_DB = _env_flag('AUTO_CREATE_DB', FLASK_ENV.lower() == 'development')
 
     # File upload folders
-    UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER', os.path.join(basedir, 'uploads'))
-    EXPORT_FOLDER = os.environ.get('EXPORT_FOLDER', os.path.join(basedir, 'exports'))
-    HOTEL_UPLOAD_FOLDER = os.environ.get('HOTEL_UPLOAD_FOLDER', os.path.join(basedir, 'app', 'static', 'uploads', 'hotels'))
+    UPLOAD_FOLDER = _project_path(os.environ.get('UPLOAD_FOLDER'), os.path.join(basedir, 'uploads'))
+    EXPORT_FOLDER = _project_path(os.environ.get('EXPORT_FOLDER'), os.path.join(basedir, 'exports'))
+    HOTEL_UPLOAD_FOLDER = _project_path(os.environ.get('HOTEL_UPLOAD_FOLDER'), os.path.join(basedir, 'app', 'static', 'uploads', 'hotels'))
 
     # Mail configuration for admin password reset
     MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
@@ -87,3 +95,6 @@ class TestingConfig(Config):
     DEBUG = True
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    SQLALCHEMY_ENGINE_OPTIONS = {}
+    WTF_CSRF_ENABLED = False
+    AUTO_CREATE_DB = True

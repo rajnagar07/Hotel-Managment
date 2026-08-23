@@ -3,20 +3,35 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Family Hotel</title>
+    <title>{% block title %}Family Hotel{% endblock %}</title>
+    <meta name="description" content="Family-run luxury hotel with warm hospitality, refined rooms, and instant call/WhatsApp booking. Explore rooms, amenities, and photo gallery.">
+    <meta property="og:title" content="Family Hotel">
+    <meta property="og:description" content="Family-run luxury hotel with warm hospitality, refined rooms, and instant call/WhatsApp booking.">
+    <meta property="og:type" content="website">
+    <meta name="theme-color" content="#07111f">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
   </head>
   <body class="app-body">
+    <div class="announce-bar">
+      <div class="container d-flex align-items-center justify-content-center gap-2 flex-wrap">
+        <span class="announce-dot"></span>
+        <span>Instant WhatsApp booking is live — get a reply in minutes, not hours.</span>
+      </div>
+    </div>
     <nav class="navbar navbar-expand-lg navbar-dark nav-glass sticky-top">
       <div class="container">
-        <a class="navbar-brand brand-mark" href="{{ url_for('main.index') }}">Family Hotel</a>
+        <a class="navbar-brand brand-mark" href="{{ url_for('main.index') }}">
+          <span class="brand-dot"></span>Family Hotel
+        </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-expanded="false">
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="nav">
-          <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+          <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2" data-scroll-nav>
             <li class="nav-item"><a class="nav-link" href="{{ url_for('main.index') }}">Home</a></li>
             <li class="nav-item"><a class="nav-link" href="{{ url_for('main.hotels') }}">Hotels</a></li>
             <li class="nav-item"><a class="nav-link" href="#rooms">Rooms</a></li>
@@ -170,6 +185,39 @@
             </div>
           </div>
         </div>
+
+    <a
+      class="fab-whatsapp"
+      href="https://wa.me/919630099023"
+      target="_blank"
+      rel="noopener"
+      aria-label="Chat on WhatsApp"
+      title="Chat on WhatsApp"
+    >💬</a>
+
+    <div class="mobile-book-bar">
+      <a href="tel:+919630099023" class="btn btn-outline-light">Call</a>
+      <button
+        type="button"
+        class="btn btn-gold"
+        data-bs-toggle="modal"
+        data-bs-target="#hotelContactModal"
+        data-book-now
+        data-hotel-name="Family Hotel"
+        data-phone="+919630099023"
+        data-whatsapp="+919630099023"
+        data-email="ujjainhotelbooking@gmail.com"
+        data-address="Ujjain, Madhya Pradesh, India"
+      >Book Now</button>
+    </div>
+
+    <div class="lightbox-overlay" id="lightboxOverlay">
+      <button type="button" class="lightbox-close" id="lightboxClose" aria-label="Close">&times;</button>
+      <button type="button" class="lightbox-nav lightbox-prev" id="lightboxPrev" aria-label="Previous photo">&#10094;</button>
+      <img src="" alt="Enlarged gallery photo" id="lightboxImage">
+      <button type="button" class="lightbox-nav lightbox-next" id="lightboxNext" aria-label="Next photo">&#10095;</button>
+      <div class="lightbox-counter" id="lightboxCounter" aria-live="polite"></div>
+    </div>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         <script src="{{ url_for('static', filename='js/main.js') }}"></script>

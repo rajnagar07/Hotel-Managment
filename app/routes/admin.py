@@ -10,9 +10,11 @@ from flask_mail import Message
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 from werkzeug.utils import secure_filename
 import os
+import uuid
 from app.routes import admin_bp
 from functools import wraps
 from sqlalchemy import func, or_
+from sqlalchemy.exc import OperationalError
 from app import db, mail
 from app.models import Admin, Room, Booking, Hotel, HotelImage
 from app.forms import LoginForm, AdminSignupForm, ForgotPasswordForm, ResetPasswordForm, RoomForm, ExcelUploadForm, HotelForm, DeleteForm
@@ -34,6 +36,18 @@ def admin_required(view):
             return redirect(url_for('admin.login'))
         return view(*args, **kwargs)
 
+    return wrapped
+
+
+def admin_only(view):
+    """Restrict sensitive account and destructive actions to full admins."""
+    @wraps(view)
+    @admin_required
+    def wrapped(*args, **kwargs):
+        if getattr(current_user, 'role', 'admin') == 'subadmin':
+            flash('This action is available to full admins only.', 'danger')
+            return redirect(url_for('admin.dashboard'))
+        return view(*args, **kwargs)
     return wrapped
 
 
@@ -123,6 +137,23 @@ def _room_choices():
     return choices
 
 
+def _room_image_url(image):
+    """Return the stored room image filename without allowing path traversal."""
+    if not image:
+        return None
+    return os.path.basename(str(image).replace('\\', '/'))
+
+
+def _delete_room_image_file(filename):
+    """Delete a room image from the configured upload directory."""
+    safe_name = _room_image_url(filename)
+    if not safe_name:
+        return
+    image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], safe_name)
+    if os.path.isfile(image_path):
+        os.remove(image_path)
+
+
 # -----------------------------
 # Admin login/logout routes
 # -----------------------------
@@ -139,9 +170,17 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         identifier = (form.identifier.data or '').strip().lower()
-        admin = Admin.query.filter(
-            or_(func.lower(Admin.username) == identifier, func.lower(Admin.email) == identifier)
-        ).first()
+        try:
+            admin = Admin.query.filter(
+                or_(func.lower(Admin.username) == identifier, func.lower(Admin.email) == identifier)
+            ).first()
+        except OperationalError:
+            # Supabase can briefly reject connections during maintenance or
+            # failover. Show a usable response instead of Flask's debugger.
+            db.session.rollback()
+            current_app.logger.exception('Database unavailable during admin login')
+            flash('The database is temporarily unavailable. Please try again shortly.', 'danger')
+            return render_template('admin/login.html', form=form), 503
         if admin and admin.check_password(form.password.data):
             if getattr(admin, 'role', 'admin') == 'subadmin' and not getattr(admin, 'is_verified', False):
                 flash('Your subadmin account is awaiting verification.', 'warning')
@@ -281,6 +320,7 @@ def dashboard():
     total_hotels = Hotel.query.count()
     hotel_images = HotelImage.query.count()
     recent_bookings = Booking.query.order_by(Booking.created_at.desc()).limit(10).all()
+    recent_rooms = Room.query.order_by(Room.id.desc()).limit(50).all()
     recent_hotels = Hotel.query.order_by(Hotel.created_at.desc()).limit(10).all()
     pending_subadmins = Admin.query.filter(Admin.role == 'subadmin', Admin.is_verified.is_(False)).order_by(Admin.created_at.desc()).all()
     verified_subadmins = Admin.query.filter(Admin.role == 'subadmin', Admin.is_verified.is_(True)).order_by(Admin.created_at.desc()).all()
@@ -305,6 +345,7 @@ def dashboard():
         total_hotels=total_hotels,
         hotel_images=hotel_images,
         recent_bookings=recent_bookings,
+        recent_rooms=recent_rooms,
         recent_hotels=recent_hotels,
         pending_subadmins=pending_subadmins,
         verified_subadmins=verified_subadmins,
@@ -314,7 +355,7 @@ def dashboard():
 
 
 @admin_bp.route('/subadmins/<int:admin_id>/verify', methods=['POST'])
-@admin_required
+@admin_only
 def verify_subadmin(admin_id):
     """Approve a pending subadmin so they can access admin tools."""
     form = DeleteForm()
@@ -334,7 +375,7 @@ def verify_subadmin(admin_id):
 
 
 @admin_bp.route('/subadmins/<int:admin_id>/delete', methods=['POST'])
-@admin_required
+@admin_only
 def delete_subadmin_request(admin_id):
     """Delete a pending subadmin request from the dashboard."""
     form = DeleteForm()
@@ -359,7 +400,7 @@ def delete_subadmin_request(admin_id):
 
 
 @admin_bp.route('/subadmins/<int:admin_id>/remove', methods=['POST'])
-@admin_required
+@admin_only
 def remove_verified_subadmin(admin_id):
     """Remove a verified subadmin account from the dashboard."""
     form = DeleteForm()
@@ -514,7 +555,7 @@ def edit_hotel(hotel_id):
 
 
 @admin_bp.route('/hotels/delete/<int:hotel_id>', methods=['POST'])
-@admin_required
+@admin_only
 def delete_hotel(hotel_id):
     """Delete a hotel and all related uploaded images."""
     form = DeleteForm()
@@ -533,7 +574,7 @@ def delete_hotel(hotel_id):
 
 
 @admin_bp.route('/hotels/images/delete/<int:image_id>', methods=['POST'])
-@admin_required
+@admin_only
 def delete_hotel_image(image_id):
     """Delete a single hotel image from disk and database."""
     form = DeleteForm()
@@ -576,7 +617,7 @@ def api_add_hotel():
 
 
 @admin_bp.route('/api/hotels/<int:hotel_id>', methods=['DELETE'])
-@admin_required
+@admin_only
 def api_delete_hotel(hotel_id):
     """Delete a hotel through the admin JSON API."""
     hotel = Hotel.query.get_or_404(hotel_id)
@@ -605,7 +646,10 @@ def new_room():
         f = request.files.get('images')
         if f and f.filename:
             # Securely save uploaded image to UPLOAD_FOLDER
-            filename = secure_filename(f.filename)
+            original_name = secure_filename(f.filename)
+            extension = os.path.splitext(original_name)[1].lower()
+            filename = f'{uuid.uuid4().hex}{extension}'
+            os.makedirs(current_app.config['UPLOAD_FOLDER'], exist_ok=True)
             f.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
             images = filename
         # Create and persist new room record
@@ -621,14 +665,83 @@ def new_room():
         db.session.commit()
         flash('Room added', 'success')
         return redirect(url_for('admin.dashboard'))
-    return render_template('admin/room_form.html', form=form)
+    return render_template('admin/room_form.html', form=form, room=None)
+
+
+@admin_bp.route('/rooms/<int:room_id>/edit', methods=['GET', 'POST'])
+@admin_required
+def edit_room(room_id):
+    """Update a room and optionally replace its photo."""
+    room = Room.query.get_or_404(room_id)
+    form = RoomForm(obj=room)
+    if form.validate_on_submit():
+        room.number = form.number.data
+        room.room_type = form.room_type.data
+        room.price = form.price.data
+        room.ac = form.ac.data
+        room.availability = form.availability.data
+        room.description = form.description.data
+
+        f = request.files.get('images')
+        if f and f.filename:
+            original_name = secure_filename(f.filename)
+            extension = os.path.splitext(original_name)[1].lower()
+            filename = f'{uuid.uuid4().hex}{extension}'
+            os.makedirs(current_app.config['UPLOAD_FOLDER'], exist_ok=True)
+            f.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+            old_image = room.images
+            room.images = filename
+            _delete_room_image_file(old_image)
+
+        db.session.commit()
+        flash('Room updated successfully.', 'success')
+        return redirect(url_for('admin.edit_room', room_id=room.id))
+    return render_template('admin/room_form.html', form=form, room=room, delete_form=DeleteForm())
+
+
+@admin_bp.route('/rooms/<int:room_id>/image/delete', methods=['POST'])
+@admin_only
+def delete_room_image(room_id):
+    """Delete only the photo belonging to a room."""
+    form = DeleteForm()
+    room = Room.query.get_or_404(room_id)
+    if not form.validate_on_submit():
+        flash('Invalid image delete request.', 'danger')
+        return redirect(url_for('admin.edit_room', room_id=room.id))
+
+    _delete_room_image_file(room.images)
+    room.images = None
+    db.session.commit()
+    flash('Room photo deleted.', 'success')
+    return redirect(url_for('admin.edit_room', room_id=room.id))
+
+
+@admin_bp.route('/rooms/<int:room_id>/delete', methods=['POST'])
+@admin_only
+def delete_room(room_id):
+    """Delete a room and its uploaded photo when it has no bookings."""
+    form = DeleteForm()
+    if not form.validate_on_submit():
+        flash('Invalid room delete request.', 'danger')
+        return redirect(url_for('admin.dashboard'))
+
+    room = Room.query.get_or_404(room_id)
+    if Booking.query.filter_by(room_id=room.id).first():
+        flash('This room cannot be deleted because it has existing bookings.', 'warning')
+        return redirect(url_for('admin.dashboard'))
+
+    _delete_room_image_file(room.images)
+    db.session.delete(room)
+    db.session.commit()
+    flash('Room deleted successfully.', 'success')
+    return redirect(url_for('admin.dashboard'))
 
 
 # -----------------------------
 # Excel upload (preview + process)
 # -----------------------------
 @admin_bp.route('/excel/preview', methods=['POST'])
-@admin_required
+@admin_only
 def excel_preview_admin():
     """Handle Excel uploads and provide a preview before processing.
 
@@ -648,7 +761,7 @@ def excel_preview_admin():
 
 
 @admin_bp.route('/excel/process/<filename>', methods=['POST'])
-@admin_required
+@admin_only
 def excel_process_admin(filename):
     """Process the previously uploaded Excel file and commit changes.
 

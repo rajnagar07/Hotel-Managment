@@ -125,9 +125,10 @@ document.addEventListener('DOMContentLoaded', function () {
       submitBtn.textContent = 'Sending...';
 
       try {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
         const resp = await fetch('/enquire', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...(csrfToken ? { 'X-CSRFToken': csrfToken } : {}) },
           body: JSON.stringify({ name: nameInput.value.trim(), phone: phoneInput.value.trim() }),
         });
         const data = await resp.json();
@@ -168,5 +169,129 @@ document.addEventListener('DOMContentLoaded', function () {
         submitBtn.textContent = originalText;
       }
     });
+  }
+
+  // Scroll-reveal animations
+  const revealTargets = document.querySelectorAll('.reveal');
+  if (revealTargets.length && 'IntersectionObserver' in window) {
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+    revealTargets.forEach((el) => revealObserver.observe(el));
+  } else {
+    revealTargets.forEach((el) => el.classList.add('visible'));
+  }
+
+  // Animated stat counters
+  const counters = document.querySelectorAll('[data-count-to]');
+  if (counters.length && 'IntersectionObserver' in window) {
+    const counterObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const el = entry.target;
+        const target = parseInt(el.getAttribute('data-count-to'), 10) || 0;
+        const suffix = el.getAttribute('data-count-suffix') || '';
+        const duration = 1400;
+        const start = performance.now();
+        const step = (now) => {
+          const progress = Math.min((now - start) / duration, 1);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          el.textContent = Math.round(eased * target) + suffix;
+          if (progress < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+        counterObserver.unobserve(el);
+      });
+    }, { threshold: 0.4 });
+    counters.forEach((el) => counterObserver.observe(el));
+  }
+
+  // Gallery lightbox
+  const lightbox = document.getElementById('lightboxOverlay');
+  const lightboxImg = document.getElementById('lightboxImage');
+  const lightboxClose = document.getElementById('lightboxClose');
+  const lightboxPrev = document.getElementById('lightboxPrev');
+  const lightboxNext = document.getElementById('lightboxNext');
+  const lightboxCounter = document.getElementById('lightboxCounter');
+  if (lightbox && lightboxImg) {
+    const galleryImages = Array.from(document.querySelectorAll('.gallery-img'));
+    let currentIndex = 0;
+    let previousFocus = null;
+    let touchStartX = 0;
+
+    const showImage = (index) => {
+      if (!galleryImages.length) return;
+      currentIndex = (index + galleryImages.length) % galleryImages.length;
+      const image = galleryImages[currentIndex];
+      lightboxImg.setAttribute('src', image.currentSrc || image.src);
+      lightboxImg.setAttribute('alt', image.alt || 'Enlarged hotel photo');
+      if (lightboxCounter) lightboxCounter.textContent = `${currentIndex + 1} / ${galleryImages.length}`;
+    };
+
+    const openLightbox = (index) => {
+      previousFocus = document.activeElement;
+      showImage(index);
+      lightbox.classList.add('open');
+      lightbox.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      if (lightboxClose) lightboxClose.focus();
+    };
+
+    const closeLightbox = () => {
+      lightbox.classList.remove('open');
+      lightbox.setAttribute('aria-hidden', 'true');
+      lightboxImg.setAttribute('src', '');
+      document.body.style.overflow = '';
+      if (previousFocus && typeof previousFocus.focus === 'function') previousFocus.focus();
+    };
+    galleryImages.forEach((img, index) => img.addEventListener('click', () => openLightbox(index)));
+    if (lightboxClose) lightboxClose.addEventListener('click', closeLightbox);
+    if (lightboxPrev) lightboxPrev.addEventListener('click', () => showImage(currentIndex - 1));
+    if (lightboxNext) lightboxNext.addEventListener('click', () => showImage(currentIndex + 1));
+    lightbox.addEventListener('click', (ev) => {
+      if (ev.target === lightbox) closeLightbox();
+    });
+    lightbox.addEventListener('touchstart', (ev) => {
+      touchStartX = ev.changedTouches[0].screenX;
+    }, { passive: true });
+    lightbox.addEventListener('touchend', (ev) => {
+      const distance = ev.changedTouches[0].screenX - touchStartX;
+      if (Math.abs(distance) < 45) return;
+      showImage(currentIndex + (distance < 0 ? 1 : -1));
+    }, { passive: true });
+    document.addEventListener('keydown', (ev) => {
+      if (!lightbox.classList.contains('open')) return;
+      if (ev.key === 'Escape') closeLightbox();
+      if (ev.key === 'ArrowLeft') showImage(currentIndex - 1);
+      if (ev.key === 'ArrowRight') showImage(currentIndex + 1);
+    });
+  }
+
+  // Active nav link highlighting while scrolling
+  const scrollNav = document.querySelector('[data-scroll-nav]');
+  if (scrollNav) {
+    const sectionLinks = Array.from(scrollNav.querySelectorAll('a[href^="#"]'));
+    const sections = sectionLinks
+      .map((link) => document.querySelector(link.getAttribute('href')))
+      .filter(Boolean);
+    if (sections.length && 'IntersectionObserver' in window) {
+      const navObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          const id = '#' + entry.target.id;
+          const link = sectionLinks.find((l) => l.getAttribute('href') === id);
+          if (!link) return;
+          if (entry.isIntersecting) {
+            sectionLinks.forEach((l) => l.classList.remove('active-section'));
+            link.classList.add('active-section');
+          }
+        });
+      }, { threshold: 0.3, rootMargin: '-80px 0px -60% 0px' });
+      sections.forEach((sec) => navObserver.observe(sec));
+    }
   }
 });
