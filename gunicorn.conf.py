@@ -5,7 +5,7 @@ Update the log paths if your VPS uses a different location.
 
 from multiprocessing import cpu_count
 
-bind = "0.0.0.0:8000"
+bind = "127.0.0.1:8000"
 workers = (cpu_count() * 2) + 1
 worker_class = "sync"
 timeout = 120

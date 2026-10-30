@@ -4,7 +4,8 @@ Public routes include dynamic hotel listings, hotel detail pages, room detail
 pages, and customer booking flows. The admin blueprint handles mutations.
 """
 
-from flask import render_template, request, redirect, url_for, flash, current_app, send_from_directory, jsonify
+from flask import abort, render_template, request, redirect, url_for, flash, current_app, send_from_directory, jsonify
+from flask_login import current_user
 from werkzeug.utils import secure_filename
 import os
 from app.routes import main_bp
@@ -168,7 +169,20 @@ def uploaded_file(filename):
     - This is a simple helper used during development. In production,
       use a proper static file server or CDN.
     """
-    return send_from_directory(current_app.config['UPLOAD_FOLDER'], secure_filename(filename))
+    safe_filename = secure_filename(filename)
+    extension = os.path.splitext(safe_filename)[1].lower().lstrip('.')
+    public_extensions = {'jpg', 'jpeg', 'png', 'webp', 'gif'}
+    is_verified_admin = (
+        current_user.is_authenticated
+        and getattr(current_user, 'is_admin', False)
+        and (
+            getattr(current_user, 'role', 'admin') != 'subadmin'
+            or getattr(current_user, 'is_verified', False)
+        )
+    )
+    if extension not in public_extensions and not is_verified_admin:
+        abort(404)
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], safe_filename)
 
 
 # -----------------------------
@@ -242,4 +256,3 @@ def enquire():
         return jsonify({'success': False, 'message': 'Could not save enquiry: ' + result.get('message', '')}), 500
 
     return jsonify({'success': True, 'message': 'Thank you — your enquiry was received.'})
-

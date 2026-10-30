@@ -3,12 +3,12 @@ Description=Hotel Management Flask app (Gunicorn)
 After=network.target
 
 [Service]
-User=www-data
+User=deploy
 Group=www-data
-WorkingDirectory=/path/to/hotel-management
-EnvironmentFile=/path/to/hotel-management/.env
-Environment="PATH=/path/to/hotel-management/venv/bin"
-ExecStart=/path/to/hotel-management/venv/bin/gunicorn -c /path/to/hotel-management/gunicorn.conf.py run:app
+WorkingDirectory=/var/www/hotel-management
+EnvironmentFile=/var/www/hotel-management/.env
+Environment="PATH=/var/www/hotel-management/venv/bin"
+ExecStart=/var/www/hotel-management/venv/bin/gunicorn -c /var/www/hotel-management/gunicorn.conf.py run:app
 Restart=always
 RestartSec=5
 KillSignal=SIGQUIT

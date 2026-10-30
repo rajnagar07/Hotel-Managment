@@ -23,17 +23,10 @@ server {
 
     # Serve public assets directly for performance.
     location /static/ {
-        alias /path/to/hotel-management/app/static/;
+        alias /var/www/hotel-management/app/static/;
         access_log off;
         expires 30d;
         add_header Cache-Control "public, immutable";
-    }
-
-    # Serve uploaded files (Excel exports / previews) directly if you keep them on disk.
-    location /uploads/ {
-        alias /path/to/hotel-management/uploads/;
-        access_log off;
-        expires 7d;
     }
 
     location / {

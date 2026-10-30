@@ -52,8 +52,8 @@ class Config:
     }
 
     # Flask runtime mode and browser/session hardening
-    FLASK_ENV = os.environ.get('FLASK_ENV', 'development')
-    DEBUG = _env_flag('FLASK_DEBUG', FLASK_ENV.lower() == 'development')
+    FLASK_ENV = os.environ.get('FLASK_ENV', 'production').strip().lower()
+    DEBUG = False if FLASK_ENV.lower() == 'production' else _env_flag('FLASK_DEBUG', FLASK_ENV.lower() == 'development')
     SESSION_COOKIE_SECURE = _env_flag('SESSION_COOKIE_SECURE', FLASK_ENV.lower() == 'production')
     SESSION_COOKIE_HTTPONLY = _env_flag('SESSION_COOKIE_HTTPONLY', True)
     SESSION_COOKIE_SAMESITE = os.environ.get('SESSION_COOKIE_SAMESITE', 'Lax')
@@ -68,8 +68,8 @@ class Config:
     # Mail configuration for admin password reset
     MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
     MAIL_PORT = int(os.environ.get('MAIL_PORT', 587))
-    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'true').lower() == 'true'
-    MAIL_USE_SSL = os.environ.get('MAIL_USE_SSL', 'false').lower() == 'true'
+    MAIL_USE_TLS = _env_flag('MAIL_USE_TLS', True)
+    MAIL_USE_SSL = _env_flag('MAIL_USE_SSL', False)
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', MAIL_USERNAME)

@@ -676,6 +676,7 @@ body.app-body{
 }
 
 .app-body > main{position:relative;z-index:1}
+.admin-body > main{z-index:auto}
 .nav-glass{background:rgba(11,21,39,.88);box-shadow:0 8px 28px rgba(4,9,16,.14)}
 .navbar-brand{font-size:1.08rem}
 .brand-dot{width:11px;height:11px;border-radius:50%;box-shadow:0 0 0 5px rgba(216,173,85,.16)}
@@ -748,5 +749,4 @@ body.app-body{
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
   .reveal{opacity:1;transform:none}
 }
-
 

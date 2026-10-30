@@ -4,7 +4,7 @@ This module defines routes used by site administrators for logging in,
 managing rooms and hotels, and handling Excel uploads to PostgreSQL.
 """
 
-from flask import render_template, request, redirect, url_for, flash, current_app, jsonify, send_from_directory
+from flask import abort, render_template, request, redirect, url_for, flash, current_app, jsonify, send_from_directory
 from flask_login import login_user, logout_user, login_required, current_user
 from flask_mail import Message
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
@@ -201,10 +201,16 @@ def signup():
     """
     admin_count = Admin.query.count()
     is_admin_user = current_user.is_authenticated and getattr(current_user, 'is_admin', False)
+    is_verified_admin = (
+        is_admin_user
+        and (
+            getattr(current_user, 'role', 'admin') != 'subadmin'
+            or getattr(current_user, 'is_verified', False)
+        )
+    )
+    if admin_count > 0 and not is_verified_admin:
+        abort(404)
     public_signup_role = 'admin' if admin_count == 0 else 'subadmin'
-
-    if is_admin_user:
-        return redirect(url_for('admin.dashboard'))
 
     form = AdminSignupForm()
     if is_admin_user:
@@ -773,4 +779,3 @@ def excel_process_admin(filename):
     result = process_excel_upload(filepath, db.session)
     flash(result.get('message', 'Processed'), 'info')
     return redirect(url_for('admin.dashboard'))
-

@@ -13,6 +13,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_mail import Mail
 from flask_wtf import CSRFProtect
+from werkzeug.middleware.proxy_fix import ProxyFix
 from config import Config
 
 # Initialize extensions (they will be bound to app in create_app)
@@ -37,6 +38,9 @@ def create_app(config_class=Config):
     """
     app = Flask(__name__, static_folder='static', template_folder='templates')
     app.config.from_object(config_class)
+
+    if not app.debug:
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
     # Bind extensions to app
     db.init_app(app)
