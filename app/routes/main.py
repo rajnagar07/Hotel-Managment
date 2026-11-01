@@ -3,8 +3,7 @@
 Public routes include dynamic hotel listings, hotel detail pages, room detail
 pages, and customer booking flows. The admin blueprint handles mutations.
 """
-
-from flask import abort, render_template, request, redirect, url_for, flash, current_app, send_from_directory, jsonify
+from flask import abort, render_template, request, redirect, url_for, flash, current_app, send_from_directory, jsonify, Response
 from flask_login import current_user
 from werkzeug.utils import secure_filename
 import os
@@ -256,3 +255,29 @@ def enquire():
         return jsonify({'success': False, 'message': 'Could not save enquiry: ' + result.get('message', '')}), 500
 
     return jsonify({'success': True, 'message': 'Thank you — your enquiry was received.'})
+
+
+# -----------------------------
+# SEO: sitemap.xml and robots.txt
+# -----------------------------
+SITE_URL = "https://hotelstayinujjain.com"
+
+
+@main_bp.route('/sitemap.xml')
+def sitemap():
+    """Generate a sitemap of all public pages, including every hotel and room."""
+    paths = ['/', '/hotels']
+    paths += [f'/hotel/{h.id}' for h in Hotel.query.all()]
+    paths += [f'/room/{r.id}' for r in Room.query.all()]
+    urls = ''.join(f'<url><loc>{SITE_URL}{p}</loc></url>' for p in paths)
+    xml = ('<?xml version="1.0" encoding="UTF-8"?>'
+           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+           f'{urls}</urlset>')
+    return Response(xml, mimetype='application/xml')
+
+
+@main_bp.route('/robots.txt')
+def robots():
+    """Tell crawlers what to skip and where the sitemap is."""
+    txt = f"User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/\nSitemap: {SITE_URL}/sitemap.xml\n"
+    return Response(txt, mimetype='text/plain')
