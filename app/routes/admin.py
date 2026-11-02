@@ -258,20 +258,22 @@ def forgot_password():
             # This avoids a noisy error page when MAIL_USERNAME / MAIL_PASSWORD
             # are not set in .env.
             if not _mail_is_configured():
-                current_app.logger.info('Mail not configured; generated admin reset link for %s: %s', admin.email, reset_url)
                 if current_app.debug:
+                    current_app.logger.info('Mail not configured; generated admin reset link for %s: %s', admin.email, reset_url)
                     return render_template('admin/forgot_password.html', form=form, reset_link=reset_url, reset_notice='Dev reset link')
+                current_app.logger.info('Password reset requested but mail is not configured')
                 flash('Password reset is temporarily unavailable. Please contact the site owner.', 'warning')
-                return render_template('admin/forgot_password.html', form=form, reset_link=reset_url, reset_notice='Password reset is temporarily unavailable')
+                return render_template('admin/forgot_password.html', form=form, reset_notice='Password reset is temporarily unavailable')
 
             try:
                 send_reset_email(admin, token)
             except RuntimeError as exc:
-                current_app.logger.warning('Admin reset email not sent: %s', exc)
-                current_app.logger.info('Admin password reset link for %s: %s', admin.email, reset_url)
                 if current_app.debug:
+                    current_app.logger.warning('Admin reset email not sent: %s', exc)
+                    current_app.logger.info('Admin password reset link for %s: %s', admin.email, reset_url)
                     flash(f'Dev reset link: {reset_url}', 'info')
                     return render_template('admin/forgot_password.html', form=form)
+                current_app.logger.warning('Password reset email could not be sent')
             except Exception as exc:
                 current_app.logger.exception('Failed to send admin reset email: %s', exc)
                 flash('Unable to send reset email right now. Please check mail settings.', 'danger')
