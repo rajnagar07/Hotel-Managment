@@ -42,11 +42,12 @@ def _serialize_hotel(hotel):
 @main_bp.route('/')
 def index():
     """Render homepage with featured hotels and rooms."""
-    hotels = Hotel.query.order_by(Hotel.created_at.desc()).limit(6).all()
+    hotels = Hotel.query.order_by(Hotel.created_at.desc()).all()
+    total_hotels = Hotel.query.count()
     room_section_hotels = Hotel.query.order_by(Hotel.created_at.desc()).all()
-    rooms = Room.query.limit(6).all()
+    rooms = Room.query.all()
     gallery_images = [image.image_url for hotel in hotels for image in hotel.images][:6]
-    return render_template('index.html', hotels=hotels, room_section_hotels=room_section_hotels, rooms=rooms, gallery_images=gallery_images)
+    return render_template('index.html', hotels=hotels, total_hotels=total_hotels, room_section_hotels=room_section_hotels, rooms=rooms, gallery_images=gallery_images)
 
 
 @main_bp.route('/health')
@@ -59,10 +60,11 @@ def health():
 def hotels():
     """Dedicated public page showing all hotel listings."""
     hotels = Hotel.query.order_by(Hotel.created_at.desc()).all()
+    total_hotels = Hotel.query.count()
     room_section_hotels = hotels
-    rooms = Room.query.limit(6).all()
+    rooms = Room.query.all()
     gallery_images = [image.image_url for hotel in hotels for image in hotel.images][:6]
-    return render_template('index.html', hotels=hotels, room_section_hotels=room_section_hotels, rooms=rooms, gallery_images=gallery_images)
+    return render_template('index.html', hotels=hotels, total_hotels=total_hotels, room_section_hotels=room_section_hotels, rooms=rooms, gallery_images=gallery_images)
 
 
 @main_bp.route('/hotel/<int:hotel_id>')
