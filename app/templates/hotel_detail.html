@@ -1,4 +1,7 @@
 {% extends 'base.html' %}
+{% block title %}{{ hotel.hotel_name }} &ndash; Hotel in Ujjain | Family Hotel{% endblock %}
+{% block description %}{% if hotel.description %}{{ hotel.description|striptags|replace('\n', ' ')|replace('\r', ' ')|truncate(150, True, '') }}{% else %}{{ hotel.hotel_name }} in {{ hotel.location }}. See photos and prices and send an enquiry.{% endif %}{% endblock %}
+{% block canonical %}https://hotelstayinujjain.com{{ request.path }}{% endblock %}
 {% block content %}
   <section class="hero-card p-4 p-lg-5 mb-5">
     <div class="row g-4 align-items-center">
@@ -52,7 +55,7 @@
           <div class="carousel-inner">
             {% for image in hotel.images %}
               <div class="carousel-item {% if loop.first %}active{% endif %}">
-                <img loading="lazy" src="{{ image.image_url }}" class="d-block w-100 hotel-detail-image gallery-img" alt="{{ hotel.hotel_name }} image {{ loop.index }}">
+                <img loading="lazy" src="{{ image.image_url }}" class="d-block w-100 hotel-detail-image gallery-img" alt="{{ hotel.hotel_name }} – photo {{ loop.index }}">
               </div>
             {% else %}
               <div class="carousel-item active">
@@ -126,4 +129,22 @@
       </div>
     </section>
   {% endif %}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Hotel",
+    "name": {{ hotel.hotel_name|tojson }},
+    "url": {{ ('https://hotelstayinujjain.com' ~ request.path)|tojson }},
+    {% if hotel.cover_image_url %}
+    "image": {{ (hotel.cover_image_url if hotel.cover_image_url.startswith('http') else 'https://hotelstayinujjain.com' ~ hotel.cover_image_url)|tojson }},
+    {% endif %}
+    "description": {% if hotel.description %}{{ hotel.description|striptags|replace('\n', ' ')|replace('\r', ' ')|truncate(150, True, '')|tojson }}{% else %}{{ (hotel.hotel_name ~ ' in ' ~ hotel.location ~ '. See photos and prices and send an enquiry.')|tojson }}{% endif %},
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Ujjain",
+      "addressRegion": "Madhya Pradesh",
+      "addressCountry": "IN"
+    }
+  }
+  </script>
 {% endblock %}

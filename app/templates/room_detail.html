@@ -1,9 +1,11 @@
 {% extends 'base.html' %}
+{% block title %}{{ room.room_type }} &ndash; Hotel in Ujjain | Family Hotel{% endblock %}
+{% block description %}{% if room.description %}{{ room.description|striptags|replace('\n', ' ')|replace('\r', ' ')|truncate(150, True, '') }}{% else %}{{ room.room_type }} in Ujjain. See photos and prices and send an enquiry.{% endif %}{% endblock %}
 {% block content %}
   <div class="row g-4 align-items-start">
     <div class="col-lg-7">
       {% if room.images %}
-        <img class="img-fluid rounded-4 shadow-sm w-100 hotel-detail-image gallery-img" src="{{ url_for('main.uploaded_file', filename=room.images.replace('\\', '/').split('/')[-1]) }}" alt="{{ room.room_type }}">
+        <img class="img-fluid rounded-4 shadow-sm w-100 hotel-detail-image gallery-img" src="{{ url_for('main.uploaded_file', filename=room.images.replace('\\', '/').split('/')[-1]) }}" alt="Family Hotel Ujjain – gallery photo 1">
       {% else %}
         <div class="hotel-card-placeholder hotel-detail-placeholder rounded-4 d-flex align-items-center justify-content-center">
           <div class="text-center p-5">

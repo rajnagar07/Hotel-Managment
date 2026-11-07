@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    {% block robots %}<meta name="robots" content="noindex, nofollow">{% endblock %}
     <title>Admin | Family Hotel</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -14,7 +15,6 @@
       <div class="container">
         <a class="navbar-brand brand-mark" href="{{ url_for('main.index') }}">Family Hotel</a>
         <div class="ms-auto d-flex gap-2">
-          <a class="btn btn-outline-light btn-sm" href="{{ url_for('admin.signup') }}">Admin Signup</a>
           <a class="btn btn-gold btn-sm" href="{{ url_for('admin.login') }}">Admin Login</a>
         </div>
       </div>
