@@ -108,11 +108,19 @@ h1,h2,h3,h4,.display-6{font-family:'Playfair Display',serif}
 .card{border:none}
 
 .hotel-card-img,
-.hotel-detail-image{
+.hotel-detail-image,
+.gallery-img{
   width:100%;
   height:280px;
+  max-width:100%;
+  aspect-ratio:16 / 9;
   object-fit:cover;
+  background:#f4f6f9;
 }
+
+.gallery-img{height:220px}
+.hero-media,.hotel-card,.carousel-item{background:#f4f6f9}
+.hero-media img{max-width:100%;object-fit:cover}
 
 .hotel-card-placeholder,
 .hotel-detail-placeholder,
@@ -214,12 +222,12 @@ h1,h2,h3,h4,.display-6{font-family:'Playfair Display',serif}
 html{scroll-behavior:smooth}
 
 /* ===== Scroll-reveal animations ===== */
-.reveal{
+.js .reveal{
   opacity:0;
   transform:translateY(28px);
   transition:opacity .7s cubic-bezier(.2,.7,.3,1), transform .7s cubic-bezier(.2,.7,.3,1);
 }
-.reveal.visible{opacity:1;transform:translateY(0)}
+.js .reveal.visible{opacity:1;transform:translateY(0)}
 .reveal-stagger > *{transition-delay:calc(var(--stagger-index, 0) * 90ms)}
 
 /* ===== Hero upgrade ===== */
@@ -747,6 +755,5 @@ body.app-body{
 
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
-  .reveal{opacity:1;transform:none}
+  .js .reveal{opacity:1;transform:none}
 }
-

@@ -55,7 +55,7 @@
           <div class="carousel-inner">
             {% for image in hotel.images %}
               <div class="carousel-item {% if loop.first %}active{% endif %}">
-                <img loading="lazy" src="{{ image.image_url }}" class="d-block w-100 hotel-detail-image gallery-img" alt="{{ hotel.hotel_name }} – photo {{ loop.index }}">
+                <img {% if not loop.first %}loading="lazy"{% endif %} decoding="async" src="{{ image.image_url }}" class="d-block w-100 hotel-detail-image gallery-img" alt="{{ hotel.hotel_name }} – photo {{ loop.index }}">
               </div>
             {% else %}
               <div class="carousel-item active">

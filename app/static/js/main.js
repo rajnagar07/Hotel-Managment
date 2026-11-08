@@ -173,7 +173,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Scroll-reveal animations
   const revealTargets = document.querySelectorAll('.reveal');
-  if (revealTargets.length && 'IntersectionObserver' in window) {
+  const revealAll = () => revealTargets.forEach((el) => el.classList.add('visible'));
+  if (revealTargets.length && 'IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     const revealObserver = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
@@ -181,10 +182,14 @@ document.addEventListener('DOMContentLoaded', function () {
           revealObserver.unobserve(entry.target);
         }
       });
-    }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+    }, { threshold: 0, rootMargin: '0px 0px -10% 0px' });
     revealTargets.forEach((el) => revealObserver.observe(el));
+    window.setTimeout(() => {
+      revealAll();
+      revealObserver.disconnect();
+    }, 1500);
   } else {
-    revealTargets.forEach((el) => el.classList.add('visible'));
+    revealAll();
   }
 
   // Animated stat counters

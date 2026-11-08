@@ -32,7 +32,7 @@
     <div class="hero-scroll-cue"><span></span></div>
   </section>
 
-  <section class="mb-5 reveal">
+  <section class="mb-5">
     <div class="stats-band">
       <div class="row g-4">
         <div class="col-6 col-md-3">
@@ -63,34 +63,34 @@
     </div>
   </section>
 
-  <section class="mb-5 reveal">
+  <section class="mb-5">
     <div class="text-center mx-auto section-lead">
       <span class="eyebrow">Why choose us</span>
       <h2 class="mt-2 mb-3">Everything you need for a comfortable stay</h2>
     </div>
     <div class="row g-4">
-      <div class="col-md-6 col-lg-3">
+      <div class="col-md-6 col-lg-3 reveal">
         <div class="feature-card">
           <div class="feature-icon icon-gold">⚡</div>
           <h5 class="mb-2">Instant Booking</h5>
           <p class="text-muted mb-0">Call, WhatsApp, or email in one tap — no forms, no waiting.</p>
         </div>
       </div>
-      <div class="col-md-6 col-lg-3">
+      <div class="col-md-6 col-lg-3 reveal">
         <div class="feature-card">
           <div class="feature-icon icon-purple">📶</div>
           <h5 class="mb-2">Free High-Speed WiFi</h5>
           <p class="text-muted mb-0">Stay connected throughout your stay, in every room.</p>
         </div>
       </div>
-      <div class="col-md-6 col-lg-3">
+      <div class="col-md-6 col-lg-3 reveal">
         <div class="feature-card">
           <div class="feature-icon icon-coral">📍</div>
           <h5 class="mb-2">Prime Location</h5>
           <p class="text-muted mb-0">Close to major attractions with easy access and parking.</p>
         </div>
       </div>
-      <div class="col-md-6 col-lg-3">
+      <div class="col-md-6 col-lg-3 reveal">
         <div class="feature-card">
           <div class="feature-icon icon-teal">🛎️</div>
           <h5 class="mb-2">24/7 Support</h5>
@@ -100,7 +100,7 @@
     </div>
   </section>
 
-  <section id="hotels" class="mb-5 reveal">
+  <section id="hotels" class="mb-5">
     <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
       <div>
         <span class="eyebrow">Hotels</span>
@@ -109,10 +109,10 @@
     </div>
     <div class="row g-4">
       {% for hotel in hotels %}
-      <div class="col-md-6 col-xl-4">
+      <div class="col-md-6 col-xl-4 reveal">
         <div class="card glass-card h-100 overflow-hidden hotel-card">
           {% if hotel.cover_image_url %}
-            <img src="{{ hotel.cover_image_url }}" class="card-img-top hotel-card-img gallery-img" alt="{{ hotel.hotel_name }} – photo {{ loop.index }}">
+            <img loading="lazy" decoding="async" src="{{ hotel.cover_image_url }}" class="card-img-top hotel-card-img gallery-img" alt="{{ hotel.hotel_name }} – photo {{ loop.index }}">
           {% else %}
             <div class="hotel-card-placeholder d-flex align-items-center justify-content-center">
               <div class="text-center p-4">
@@ -172,7 +172,8 @@
     </div>
   </section>
 
-  <section id="rooms" class="mb-5 reveal">
+  {% if rooms %}
+  <section id="rooms" class="mb-5">
     <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
       <div>
         <span class="eyebrow">Rooms</span>
@@ -181,10 +182,10 @@
     </div>
     <div class="row g-4">
       {% for room in rooms %}
-      <div class="col-md-6 col-xl-4">
+      <div class="col-md-6 col-xl-4 reveal">
         <div class="card glass-card h-100 overflow-hidden hotel-card">
           {% if room.images %}
-            <img loading="lazy" src="{{ url_for('main.uploaded_file', filename=room.images.replace('\\', '/').split('/')[-1]) }}" class="card-img-top hotel-card-img gallery-img" alt="{{ room.room_type }} room {{ room.number }}">
+            <img loading="lazy" decoding="async" src="{{ url_for('main.uploaded_file', filename=room.images.replace('\\', '/').split('/')[-1]) }}" class="card-img-top hotel-card-img gallery-img" alt="{{ room.room_type }} room {{ room.number }}">
           {% else %}
             <div class="hotel-card-placeholder room-card-placeholder d-flex align-items-center justify-content-center"><div class="text-center p-4"><div class="hotel-placeholder-icon mb-3">🛏️</div><div class="fw-semibold">Room preview coming soon</div></div></div>
           {% endif %}
@@ -209,8 +210,9 @@
       </div>
     {% endif %} -->
   </section>
+  {% endif %}
 
-  <section id="gallery" class="mb-5 reveal">
+  <section id="gallery" class="mb-5">
     <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
       <div>
         <span class="eyebrow">Gallery</span>
@@ -220,8 +222,8 @@
     </div>
     <div class="row g-4">
       {% for image in gallery_images %}
-      <div class="col-md-4">
-        <img loading="lazy" src="{{ image }}" class="img-fluid rounded-4 shadow-sm gallery-img" alt="Family Hotel Ujjain – gallery photo {{ loop.index }}">
+      <div class="col-md-4 reveal">
+        <img loading="lazy" decoding="async" src="{{ image }}" class="img-fluid rounded-4 shadow-sm gallery-img" alt="Family Hotel Ujjain – gallery photo {{ loop.index }}">
       </div>
       {% else %}
       <div class="col-12">
@@ -231,13 +233,13 @@
     </div>
   </section>
 
-  <section class="mb-5 reveal">
+  <section class="mb-5">
     <div class="text-center mx-auto section-lead">
       <span class="eyebrow">Guest reviews</span>
       <h2 class="mt-2 mb-3">What our guests say</h2>
     </div>
     <div class="row g-4">
-      <div class="col-md-4">
+      <div class="col-md-4 reveal">
         <div class="testimonial-card">
           <div class="testimonial-stars">★★★★★</div>
           <p class="mb-4">"Spotless rooms, warm hospitality, and the booking process took two minutes over WhatsApp. Highly recommend."</p>
@@ -250,7 +252,7 @@
           </div>
         </div>
       </div>
-      <div class="col-md-4">
+      <div class="col-md-4 reveal">
         <div class="testimonial-card">
           <div class="testimonial-stars">★★★★★</div>
           <p class="mb-4">"Felt like staying with family. The staff went out of their way to make our trip comfortable."</p>
@@ -263,7 +265,7 @@
           </div>
         </div>
       </div>
-      <div class="col-md-4">
+      <div class="col-md-4 reveal">
         <div class="testimonial-card">
           <div class="testimonial-stars">★★★★★</div>
           <p class="mb-4">"Great location, clean rooms, and honest pricing. Will definitely book again on our next visit."</p>
